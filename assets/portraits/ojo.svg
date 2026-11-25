@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="35%" r="72%">
+      <stop offset="0%" stop-color="#3c3a52"/>
+      <stop offset="55%" stop-color="#1d1e2b"/>
+      <stop offset="100%" stop-color="#0e1015"/>
+    </radialGradient>
+    <linearGradient id="robe" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#2c334a"/>
+      <stop offset="100%" stop-color="#141824"/>
+    </linearGradient>
+    <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#e5ccb5"/>
+      <stop offset="100%" stop-color="#be9d80"/>
+    </linearGradient>
+  </defs>
+  <rect width="320" height="320" fill="url(#bg)"/>
+  <!-- Chronurgy Arcane Ring -->
+  <circle cx="160" cy="138" r="108" fill="none" stroke="#d3b878" stroke-width="1.5" stroke-dasharray="6 6" opacity="0.45"/>
+  <circle cx="160" cy="138" r="94" fill="none" stroke="#d3b878" stroke-width="1" opacity="0.3"/>
+  <!-- Sage Robes -->
+  <path d="M55 320 L95 205 L225 205 L265 320 Z" fill="url(#robe)" stroke="#d3b878" stroke-width="2"/>
+  <path d="M128 205 L160 285 L192 205" fill="#181c29" stroke="#d3b878" stroke-width="2.5"/>
+  <!-- High Elf Ears -->
+  <path d="M108 134 L76 118 L110 150 Z" fill="url(#skin)"/>
+  <path d="M212 134 L244 118 L210 150 Z" fill="url(#skin)"/>
+  <!-- Hair (long sage silver-brown) -->
+  <path d="M102 152 C98 78 124 54 160 54 C196 54 222 78 218 152 L226 218 L94 218 Z" fill="#6b686e"/>
+  <!-- Face -->
+  <path d="M114 118 C114 86 135 74 160 74 C185 74 206 86 206 118 C206 155 186 186 160 190 C134 186 114 155 114 118 Z" fill="url(#skin)"/>
+  <!-- Long disheveled beard -->
+  <path d="M116 148 C114 195 130 238 160 256 C190 238 206 195 204 148 C190 166 175 170 160 170 C145 170 130 166 116 148 Z" fill="#8b888f" stroke="#5d5a61" stroke-width="1.5"/>
+  <path d="M138 162 Q160 174 182 162" stroke="#6d6a70" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <!-- Eyes & Brows -->
+  <circle cx="141" cy="130" r="4" fill="#d9c078"/>
+  <circle cx="179" cy="130" r="4" fill="#d9c078"/>
+  <circle cx="141" cy="130" r="1.8" fill="#171922"/>
+  <circle cx="179" cy="130" r="1.8" fill="#171922"/>
+  <path d="M128 120 Q141 116 151 122 M169 122 Q179 116 192 120" stroke="#59565e" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- Red-Sand Hourglass Arcane Focus -->
+  <g transform="translate(226, 198)">
+    <rect x="0" y="0" width="38" height="6" rx="2" fill="#d3b878"/>
+    <rect x="0" y="64" width="38" height="6" rx="2" fill="#d3b878"/>
+    <path d="M5 6 L33 6 L22 35 L33 64 L5 64 L16 35 Z" fill="#e6ecf5" opacity="0.22" stroke="#d3b878" stroke-width="2"/>
+    <path d="M9 12 L29 12 L20 32 Z" fill="#c9473a"/>
+    <path d="M19 36 L10 62 L28 62 Z" fill="#d95345"/>
+  </g>
+  <!-- Black Cat Familiar -->
+  <g transform="translate(42, 206)">
+    <ellipse cx="28" cy="52" rx="22" ry="30" fill="#111216"/>
+    <circle cx="28" cy="24" r="16" fill="#111216"/>
+    <polygon points="15,16 12,0 24,10" fill="#111216"/>
+    <polygon points="41,16 44,0 32,10" fill="#111216"/>
+    <circle cx="22" cy="24" r="2.6" fill="#e0c368"/>
+    <circle cx="34" cy="24" r="2.6" fill="#e0c368"/>
+  </g>
+</svg>

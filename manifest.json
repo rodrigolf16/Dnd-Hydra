@@ -1,0 +1,40 @@
+{
+  "manifest_version": 3,
+  "name": "Ronda — Panel DM D&D 2024",
+  "short_name": "Ronda DM",
+  "version": "1.0.0",
+  "description": "Panel del Director de Juego para D&D 2024: gestión de turnos, dados físicos, barras de PG y sincronización de fichas abiertas desde Nivel20.",
+  "icons": {
+    "16": "assets/icons/icon16.png",
+    "32": "assets/icons/icon32.png",
+    "48": "assets/icons/icon48.png",
+    "128": "assets/icons/icon128.png"
+  },
+  "action": {
+    "default_title": "Ronda — Panel DM D&D 2024",
+    "default_popup": "extension/popup.html",
+    "default_icon": {
+      "16": "assets/icons/icon16.png",
+      "32": "assets/icons/icon32.png",
+      "48": "assets/icons/icon48.png",
+      "128": "assets/icons/icon128.png"
+    }
+  },
+  "side_panel": {
+    "default_path": "index.html"
+  },
+  "background": {
+    "service_worker": "extension/background.js"
+  },
+  "permissions": [
+    "sidePanel",
+    "activeTab",
+    "scripting",
+    "storage",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://nivel20.com/*",
+    "https://*.nivel20.com/*"
+  ]
+}

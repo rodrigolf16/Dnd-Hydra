@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="35%" r="70%">
+      <stop offset="0%" stop-color="#354a34"/>
+      <stop offset="55%" stop-color="#1a241b"/>
+      <stop offset="100%" stop-color="#0d110e"/>
+    </radialGradient>
+    <linearGradient id="cloak" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#2b3d28"/>
+      <stop offset="100%" stop-color="#131b13"/>
+    </linearGradient>
+    <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#d8b594"/>
+      <stop offset="100%" stop-color="#a88062"/>
+    </linearGradient>
+  </defs>
+  <rect width="320" height="320" fill="url(#bg)"/>
+  <!-- Moonlit forest aura -->
+  <circle cx="245" cy="68" r="36" fill="#d8e7b0" opacity="0.16"/>
+  <circle cx="245" cy="68" r="22" fill="#e6f2c7" opacity="0.22"/>
+  <path d="M20 320 L65 185 L255 185 L300 320 Z" fill="url(#cloak)"/>
+  <!-- Leather armor & straps -->
+  <path d="M95 215 Q160 250 225 215 L245 320 L75 320 Z" fill="#2c241c" stroke="#4c3d2d" stroke-width="2"/>
+  <path d="M110 218 L210 318 M210 218 L110 318" stroke="#5f4a34" stroke-width="8" opacity="0.85"/>
+  <circle cx="160" cy="268" r="9" fill="#c7b273" stroke="#5c4c2a" stroke-width="2"/>
+  <!-- Hood -->
+  <path d="M74 225 C62 115 95 45 160 40 C225 45 258 115 246 225 C225 190 205 170 160 170 C115 170 95 190 74 225 Z" fill="#1e2b1d" stroke="#3c5238" stroke-width="2.5"/>
+  <!-- Wood Elf Ears -->
+  <path d="M106 142 L74 128 L108 158 Z" fill="url(#skin)"/>
+  <path d="M214 142 L246 128 L212 158 Z" fill="url(#skin)"/>
+  <!-- Neck & Face -->
+  <rect x="142" y="182" width="36" height="36" rx="12" fill="#9c7559"/>
+  <path d="M114 126 C114 96 135 84 160 84 C185 84 206 96 206 126 C206 164 185 198 160 202 C135 198 114 164 114 126 Z" fill="url(#skin)"/>
+  <!-- Shadow under hood -->
+  <path d="M112 126 C118 90 138 80 160 80 C182 80 202 90 208 126 C188 112 132 112 112 126 Z" fill="#1b2419" opacity="0.58"/>
+  <!-- Hair -->
+  <path d="M112 122 C116 86 142 78 166 80 C196 82 208 102 208 128 C196 108 182 102 158 104 C135 106 122 116 112 122 Z" fill="#3a2d21"/>
+  <!-- Eyes (glowing gloom stalker emerald) -->
+  <ellipse cx="140" cy="142" rx="8" ry="4" fill="#182018"/>
+  <ellipse cx="180" cy="142" rx="8" ry="4" fill="#182018"/>
+  <circle cx="140" cy="142" r="3" fill="#bad28b"/>
+  <circle cx="180" cy="142" r="3" fill="#bad28b"/>
+  <!-- Brows & subtle scar/mouth -->
+  <path d="M128 134 Q140 130 150 136 M170 136 Q180 130 192 134" stroke="#2d2219" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M158 144 L156 162 L163 163" stroke="#8a654a" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M148 176 Q160 180 172 175" stroke="#724c3b" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+  <!-- Hand crossbow / dagger glint -->
+  <path d="M236 250 L282 212 L272 266 Z" fill="#8f9c88" opacity="0.7"/>
+  <path d="M244 260 L276 232" stroke="#d5e5b3" stroke-width="2.5" opacity="0.8"/>
+</svg>

@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="35%" r="72%">
+      <stop offset="0%" stop-color="#2c4432"/>
+      <stop offset="55%" stop-color="#17211a"/>
+      <stop offset="100%" stop-color="#0b100d"/>
+    </radialGradient>
+    <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#c94b42"/>
+      <stop offset="100%" stop-color="#912d28"/>
+    </linearGradient>
+    <linearGradient id="tunic" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#5d7850"/>
+      <stop offset="100%" stop-color="#2b3d26"/>
+    </linearGradient>
+  </defs>
+  <rect width="320" height="320" fill="url(#bg)"/>
+  <!-- Moon & Druid aura -->
+  <circle cx="72" cy="70" r="24" fill="#d8e9c0" opacity="0.22"/>
+  <!-- Gnarled Thorny Staff (Shillelagh) -->
+  <path d="M254 52 C244 102 262 152 248 214 L240 310" stroke="#5c432d" stroke-width="11" fill="none" stroke-linecap="round"/>
+  <circle cx="254" cy="56" r="14" fill="#9fd179" opacity="0.35"/>
+  <circle cx="254" cy="56" r="6" fill="#d8f2b8"/>
+  <!-- Worn light-and-green druid tunic -->
+  <path d="M56 320 L92 204 L228 204 L264 320 Z" fill="url(#tunic)" stroke="#8fa67b" stroke-width="2"/>
+  <path d="M126 204 L160 280 L194 204 Z" fill="#cfc9b4"/>
+  <!-- Black Ram Horns (curved) -->
+  <path d="M124 94 C94 62 66 78 68 118 C70 144 90 156 104 146 C92 140 88 124 92 110 C96 96 112 96 122 108 Z" fill="#1b1a1e" stroke="#3a3840" stroke-width="2"/>
+  <path d="M196 94 C226 62 254 78 252 118 C250 144 230 156 216 146 C228 140 232 124 228 110 C224 96 208 96 198 108 Z" fill="#1b1a1e" stroke="#3a3840" stroke-width="2"/>
+  <!-- Tiefling Red Face -->
+  <rect x="142" y="182" width="36" height="30" rx="10" fill="#852924"/>
+  <path d="M114 124 C114 92 135 80 160 80 C185 80 206 92 206 124 C206 162 186 196 160 200 C134 196 114 162 114 124 Z" fill="url(#skin)"/>
+  <!-- Black Hair with distinct White Streak -->
+  <path d="M110 124 C114 84 136 70 160 72 C184 70 206 84 210 124 C194 102 178 96 160 98 C142 96 126 102 110 124 Z" fill="#18181c"/>
+  <path d="M148 74 C156 88 158 104 152 118 C162 106 168 92 166 74 Z" fill="#eceee8"/>
+  <!-- Glowing Amber Druid Eyes -->
+  <ellipse cx="141" cy="138" rx="7" ry="4" fill="#2e1312"/>
+  <ellipse cx="179" cy="138" rx="7" ry="4" fill="#2e1312"/>
+  <circle cx="141" cy="138" r="3" fill="#f0c869"/>
+  <circle cx="179" cy="138" r="3" fill="#f0c869"/>
+  <!-- Calm expression -->
+  <path d="M130 129 Q141 125 150 130 M170 130 Q179 125 190 129" stroke="#18181c" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+  <path d="M148 172 Q160 177 172 172" stroke="#5e1b18" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+</svg>

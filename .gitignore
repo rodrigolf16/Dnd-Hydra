@@ -1,0 +1,10 @@
+# Libros / PDFs pesados con derechos de autor (no subir a GitHub)
+*.pdf
+
+# Paquete ZIP generado localmente
+*.zip
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+desktop.ini

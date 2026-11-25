@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="35%" r="72%">
+      <stop offset="0%" stop-color="#4e402c"/>
+      <stop offset="55%" stop-color="#231d16"/>
+      <stop offset="100%" stop-color="#100e0b"/>
+    </radialGradient>
+    <linearGradient id="coat" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#2e5938"/>
+      <stop offset="100%" stop-color="#17301d"/>
+    </linearGradient>
+    <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#deb897"/>
+      <stop offset="100%" stop-color="#b58966"/>
+    </linearGradient>
+  </defs>
+  <rect width="320" height="320" fill="url(#bg)"/>
+  <!-- Ornate Lute behind shoulder -->
+  <g transform="translate(212, 74) rotate(18)">
+    <rect x="20" y="0" width="12" height="125" rx="3" fill="#6b4528"/>
+    <ellipse cx="26" cy="155" rx="40" ry="50" fill="#a86d3b" stroke="#5e3a1e" stroke-width="3"/>
+    <circle cx="26" cy="148" r="14" fill="#3a2312" stroke="#d8bc74" stroke-width="2"/>
+  </g>
+  <!-- Embroidered Green Coat -->
+  <path d="M52 320 L88 206 L232 206 L268 320 Z" fill="url(#coat)" stroke="#d3b878" stroke-width="2.5"/>
+  <path d="M126 206 L160 288 L194 206" fill="#d9d1c3"/>
+  <!-- Red Neckerchief Scarf -->
+  <path d="M116 196 Q160 226 204 196 L192 232 Q160 250 128 232 Z" fill="#a8322a" stroke="#6e1d18" stroke-width="2"/>
+  <path d="M150 226 L138 272 L166 266 L168 228 Z" fill="#8f2720"/>
+  <!-- Half-elf ears -->
+  <path d="M110 138 L92 128 L112 152 Z" fill="url(#skin)"/>
+  <path d="M210 138 L228 128 L208 152 Z" fill="url(#skin)"/>
+  <!-- Dark Hair -->
+  <path d="M104 142 C100 84 126 58 160 58 C194 58 220 84 216 142 C210 112 195 96 160 96 C125 96 110 112 104 142 Z" fill="#231d19"/>
+  <!-- Face -->
+  <path d="M114 122 C114 90 135 78 160 78 C185 78 206 90 206 122 C206 160 186 194 160 198 C134 194 114 160 114 122 Z" fill="url(#skin)"/>
+  <!-- Hair sweeps -->
+  <path d="M110 114 C122 82 146 72 178 78 C198 82 208 98 210 118 C192 98 168 94 142 100 C126 104 118 110 110 114 Z" fill="#231d19"/>
+  <!-- Weathered Scar -->
+  <path d="M174 114 L186 154" stroke="#9e6754" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Eyes & Charismatic Smile -->
+  <circle cx="141" cy="134" r="3.8" fill="#2d3b2b"/>
+  <circle cx="179" cy="134" r="3.8" fill="#2d3b2b"/>
+  <path d="M128 125 Q141 120 151 125 M169 125 Q179 120 192 125" stroke="#261f1a" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M144 170 Q160 181 178 168" stroke="#6b4435" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+  <!-- Stubble -->
+  <path d="M122 158 C126 184 142 196 160 198 C178 196 194 184 198 158 C186 176 174 182 160 182 C146 182 134 176 122 158 Z" fill="#3a2f29" opacity="0.28"/>
+</svg>

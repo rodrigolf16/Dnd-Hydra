@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0d0a">
+  <title>Ronda — Mapa para Jugadores</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="player-map-body">
+  <header class="player-map-hud">
+    <div class="player-hud-left">
+      <span class="brand-mark small-mark">R</span>
+      <div>
+        <b id="playerCampaignName">Las Grietas de Aethelgard</b>
+        <small id="playerTurnBanner">Esperando sincronización del DM…</small>
+      </div>
+    </div>
+    <div class="player-hud-right">
+      <span class="light-pill" id="playerLightBadge">☀ Día · Luz brillante</span>
+      <span class="light-pill" id="playerRoundBadge">RONDA 1</span>
+      <button type="button" class="icon-btn" id="pZoomOut" title="Alejar">−</button>
+      <span class="map-zoom-val" id="pZoomLabel">100%</span>
+      <button type="button" class="icon-btn" id="pZoomIn" title="Acercar">＋</button>
+      <button type="button" class="outline-btn" id="pFitBtn" title="Ajustar mapa a la pantalla">Centrar</button>
+      <button type="button" class="outline-btn" id="pFullscreenBtn" title="Pantalla completa">⛶</button>
+    </div>
+  </header>
+
+  <main class="player-map-viewport" id="playerViewport">
+    <div class="map-stage" id="playerStage">
+      <img id="playerBgImg" class="map-bg-img" alt="Mapa táctico" hidden draggable="false">
+      <div class="map-grid-overlay" id="playerGridOverlay"></div>
+      <div class="map-tokens-layer" id="playerTokensLayer"></div>
+      <canvas class="fog-canvas" id="playerFogCanvas"></canvas>
+    </div>
+
+    <div class="player-empty-msg" id="playerEmptyMsg" hidden>
+      <b>Mapa listo para los jugadores</b>
+      <span>Cuando el DM cargue un mapa o mueva figuras en su pestaña, se actualizará aquí en tiempo real con niebla de guerra y visión de cada personaje.</span>
+    </div>
+  </main>
+
+  <script src="campaign-data.js"></script>
+  <script src="player-map.js"></script>
+</body>
+</html>

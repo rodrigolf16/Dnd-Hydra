@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="35%" r="72%">
+      <stop offset="0%" stop-color="#613124"/>
+      <stop offset="55%" stop-color="#291714"/>
+      <stop offset="100%" stop-color="#110b0a"/>
+    </radialGradient>
+    <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#9ca1a6"/>
+      <stop offset="100%" stop-color="#686e73"/>
+    </linearGradient>
+    <linearGradient id="hair" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#4e9453"/>
+      <stop offset="100%" stop-color="#245229"/>
+    </linearGradient>
+  </defs>
+  <rect width="320" height="320" fill="url(#bg)"/>
+  <!-- Fiery embers -->
+  <circle cx="52" cy="84" r="3" fill="#ff9457" opacity="0.7"/>
+  <circle cx="268" cy="118" r="4" fill="#ff7338" opacity="0.65"/>
+  <circle cx="242" cy="60" r="2.5" fill="#ffc46b" opacity="0.75"/>
+  <!-- Greataxe behind back -->
+  <path d="M236 42 L268 38 C286 76 286 118 264 146 L236 128 Z" fill="#9ea7ad" stroke="#4d5459" stroke-width="3"/>
+  <rect x="224" y="34" width="14" height="240" rx="5" fill="#593c28" transform="rotate(14 230 140)"/>
+  <!-- Massive shoulders (grey skin) -->
+  <path d="M38 320 C44 236 86 198 160 198 C234 198 276 236 282 320 Z" fill="url(#skin)"/>
+  <!-- Leather harness & iron buckle -->
+  <path d="M88 212 L226 320 M232 212 L94 320" stroke="#472d1d" stroke-width="22"/>
+  <circle cx="160" cy="268" r="16" fill="#3a3f42" stroke="#c9844b" stroke-width="3"/>
+  <!-- Neck -->
+  <rect x="132" y="170" width="56" height="44" rx="14" fill="#777d82"/>
+  <!-- Wild Green Hair -->
+  <path d="M96 138 C86 82 114 40 160 36 C206 40 234 82 224 138 L234 114 L214 68 L178 46 L142 46 L106 68 L86 114 Z" fill="url(#hair)"/>
+  <!-- Square Giant Head (grey skin) -->
+  <path d="M108 118 C108 82 130 68 160 68 C190 68 212 82 212 118 C212 162 194 194 160 198 C126 194 108 162 108 118 Z" fill="url(#skin)"/>
+  <!-- Green Hair Bangs -->
+  <path d="M102 106 C112 62 138 48 164 52 C196 50 214 70 218 106 C202 88 186 84 166 90 C142 82 120 88 102 106 Z" fill="url(#hair)"/>
+  <!-- Glowing Red Eyes -->
+  <ellipse cx="138" cy="132" rx="9" ry="5" fill="#2a1110"/>
+  <ellipse cx="182" cy="132" rx="9" ry="5" fill="#2a1110"/>
+  <circle cx="138" cy="132" r="3.8" fill="#ff4638"/>
+  <circle cx="182" cy="132" r="3.8" fill="#ff4638"/>
+  <!-- Heavy Brows & Confident Grin -->
+  <path d="M122 120 L150 126 M198 120 L170 126" stroke="#224426" stroke-width="5" stroke-linecap="round"/>
+  <path d="M158 134 L154 156 L166 156" stroke="#5a6066" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M140 172 Q160 182 180 172" stroke="#3c4146" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="35%" r="72%">
+      <stop offset="0%" stop-color="#363c42"/>
+      <stop offset="55%" stop-color="#1b1e22"/>
+      <stop offset="100%" stop-color="#0d0f12"/>
+    </radialGradient>
+    <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#e3bfa0"/>
+      <stop offset="100%" stop-color="#b88d6b"/>
+    </linearGradient>
+  </defs>
+  <rect width="320" height="320" fill="url(#bg)"/>
+  <!-- Alley lantern glow -->
+  <circle cx="62" cy="74" r="32" fill="#e0b566" opacity="0.16"/>
+  <!-- Shadow Cloak & Leather -->
+  <path d="M62 320 L92 214 L228 214 L258 320 Z" fill="#1d2024" stroke="#3c424a" stroke-width="2"/>
+  <path d="M115 218 L205 218 L188 320 L132 320 Z" fill="#2d2622"/>
+  <!-- Hood -->
+  <path d="M84 224 C76 130 106 64 160 60 C214 64 244 130 236 224 C216 196 196 184 160 184 C124 184 104 196 84 224 Z" fill="#171a1f" stroke="#363d47" stroke-width="2.5"/>
+  <!-- Halfling Face (nimble, youthful) -->
+  <path d="M118 134 C118 104 136 92 160 92 C184 92 202 104 202 134 C202 168 184 198 160 202 C136 198 118 168 118 134 Z" fill="url(#skin)"/>
+  <!-- Tousled dark hair -->
+  <path d="M116 128 C122 96 142 88 164 90 C188 90 200 106 202 128 C186 112 168 108 148 112 C132 114 124 120 116 128 Z" fill="#2c221b"/>
+  <!-- Sharp Cunning Eyes -->
+  <ellipse cx="142" cy="146" rx="7" ry="4" fill="#1b1c1f"/>
+  <ellipse cx="178" cy="146" rx="7" ry="4" fill="#1b1c1f"/>
+  <circle cx="143" cy="146" r="2.2" fill="#d9c078"/>
+  <circle cx="179" cy="146" r="2.2" fill="#d9c078"/>
+  <path d="M132 138 L150 141 M188 138 L170 141" stroke="#2c221b" stroke-width="2.8" stroke-linecap="round"/>
+  <!-- Sly assassin smirk -->
+  <path d="M148 176 Q163 182 176 172" stroke="#754c3b" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <!-- Gleaming Assassin Dagger -->
+  <g transform="translate(226, 206) rotate(22)">
+    <polygon points="14,0 24,54 14,68 4,54" fill="#cfd6dc"/>
+    <polygon points="14,0 24,54 14,68" fill="#929ca6"/>
+    <rect x="2" y="66" width="24" height="6" rx="2" fill="#b89c5d"/>
+    <rect x="10" y="72" width="8" height="24" rx="2" fill="#3b2b20"/>
+  </g>
+</svg>
