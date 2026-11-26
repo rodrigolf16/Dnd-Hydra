@@ -4313,4 +4313,194 @@ dialog.dice-dialog::backdrop {
   }
 }
 
+/* =========================================================================
+   DM OFF-MAP ENEMY RESERVE (STAGING TRAY + DRAG-TO-MAP)
+   ========================================================================= */
+.reserve-card {
+  border-color: rgba(223, 141, 127, 0.36);
+  background: linear-gradient(180deg, rgba(223, 141, 127, 0.07), var(--panel));
+}
+
+.reserve-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  margin-left: 5px;
+  border-radius: 999px;
+  background: rgba(223, 141, 127, 0.2);
+  border: 1px solid rgba(223, 141, 127, 0.45);
+  color: #f0b1a5;
+  font: 600 11px var(--mono);
+  vertical-align: middle;
+}
+
+.reserve-reveal-toggle {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11.5px;
+  color: var(--muted);
+  margin: 2px 0 9px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.reserve-reveal-toggle input {
+  accent-color: var(--green);
+}
+
+.map-reserve-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.reserve-empty {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.reserve-enemy-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px;
+  border-radius: 9px;
+  border: 1px dashed rgba(223, 141, 127, 0.48);
+  background: #1a1514;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+  transition: border-color 0.14s ease, background 0.14s ease, transform 0.12s ease;
+}
+
+.reserve-enemy-chip:hover {
+  border-color: var(--red);
+  background: #221a18;
+}
+
+.reserve-enemy-chip.dragging-reserve {
+  opacity: 0.42;
+  cursor: grabbing;
+}
+
+.reserve-grip {
+  color: #8c6d67;
+  font-size: 14px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.enemy-reserve-av {
+  border-color: rgba(223, 141, 127, 0.6) !important;
+  color: var(--red) !important;
+}
+
+.reserve-enemy-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.reserve-enemy-info b {
+  display: block;
+  font-size: 12.5px;
+  color: #f1e6e3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.reserve-enemy-info small {
+  display: block;
+  font-size: 10.5px;
+  color: #b7948d;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.reserve-enemy-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.reserve-enemy-actions button {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: 1px solid #423330;
+  background: #241b19;
+  color: #e4ccc7;
+  font-size: 12px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+
+.reserve-enemy-actions button:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.reserve-enemy-actions .reserve-del-btn:hover {
+  border-color: var(--red);
+  color: var(--red);
+}
+
+.map-roster-row.staged-row {
+  opacity: 0.72;
+  border-style: dashed;
+}
+
+.map-viewport.drop-ready {
+  box-shadow: inset 0 0 0 2px var(--green), 0 0 18px rgba(186, 210, 139, 0.25);
+}
+
+.reserve-drag-ghost {
+  position: fixed;
+  z-index: 9999;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 2.5px solid var(--red);
+  background: #1d1514;
+  color: var(--red);
+  display: grid;
+  place-items: center;
+  font: 700 20px var(--serif);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.65), 0 0 16px rgba(223, 141, 127, 0.45);
+}
+
+.reserve-drag-ghost img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.reserve-drag-ghost span {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  padding: 2px 7px;
+  border-radius: 5px;
+  background: rgba(15, 18, 13, 0.94);
+  border: 1px solid rgba(223, 141, 127, 0.55);
+  color: #f3e8e5;
+  font: 600 11px var(--sans);
+}
+
+
 

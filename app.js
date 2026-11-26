@@ -459,8 +459,11 @@
     return `https://www.google.com/search?tbm=isch&q=${encodeURIComponent(`${name} dnd 5e monster token`)}`;
   }
 
-  async function fetchAutoEnemyImage(enemy) {
-    const rawName = String(enemy.name || '').trim();
+  async function fetchAutoEnemyImage(enemyOrList) {
+    const batch = Array.isArray(enemyOrList) ? enemyOrList : [enemyOrList];
+    const first = batch[0];
+    if (!first) return;
+    const rawName = String(first.name || '').trim();
     if (!rawName) return;
     const cleaned = rawName.toLowerCase().replace(/\s+\d+$/, '').trim();
     const translated = ENEMY_TRANSLATIONS[cleaned] || Object.entries(ENEMY_TRANSLATIONS).find(([k]) => cleaned.includes(k))?.[1] || cleaned;
@@ -495,12 +498,20 @@
     if (!found) found = await tryCommons(cleaned);
 
     if (found) {
-      const target = byId(enemy.id);
-      if (target && !target.avatar) {
-        target.avatar = found;
+      let updated = 0;
+      batch.forEach(item => {
+        const target = byId(item.id);
+        if (target && !target.avatar) {
+          target.avatar = found;
+          updated += 1;
+        }
+      });
+      if (updated > 0) {
         saveState();
         renderAll();
-        toast(`Imagen encontrada automáticamente para ${target.name}`);
+        toast(updated > 1
+          ? `Imagen encontrada para ${updated} adversarios`
+          : `Imagen encontrada automáticamente para ${first.name}`);
       }
     }
   }
@@ -1585,6 +1596,7 @@
       );
 
       if (c.type === 'enemy') {
+        hpBtns.append(makeMini('⧉', 'Clonar adversario (en reserva del mapa)', () => cloneEnemy(c.id)));
         hpBtns.append(makeMini('🔍', 'Buscar imagen en Google', () => window.open(googleImagesUrl(c.name), '_blank', 'noopener')));
       }
       hpBtns.append(makeMini('✕', c.type === 'enemy' ? 'Eliminar adversario' : 'Eliminar personaje', () => removeCombatant(c.id), 'remove-enemy-btn'));
@@ -2467,6 +2479,54 @@
     return true;
   }
 
+  function nextNumberedEnemyName(baseName, usedNames = null) {
+    const cleanBase = String(baseName || 'Adversario').trim().replace(/\s+\d+$/, '') || 'Adversario';
+    const existing = usedNames || new Set(state.combatants.map(x => String(x.name || '').trim().toLowerCase()));
+    let n = 1;
+    // If the unnumbered base already exists, start numbering from 2 (e.g. Goblin -> Goblin 2)
+    if (existing.has(cleanBase.toLowerCase())) n = 2;
+    while (existing.has(`${cleanBase} ${n}`.toLowerCase())) n += 1;
+    const result = `${cleanBase} ${n}`;
+    existing.add(result.toLowerCase());
+    return result;
+  }
+
+  function cloneEnemy(id) {
+    const src = byId(id);
+    if (!src || src.type !== 'enemy') return null;
+    ensureMapState(state);
+    const cloneName = nextNumberedEnemyName(src.name);
+    const copy = hydrateCombatant({
+      ...clone(src),
+      id: `enemy-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      name: cloneName,
+      hp: src.maxHp,
+      defeated: false,
+      conditions: [],
+      concentration: null,
+      markedTargetId: null
+    });
+    state.combatants.push(copy);
+    if (copy.initiativeRoll !== null && copy.initiativeRoll !== undefined) {
+      state.combatants.sort((a, b) => (b.initiativeRoll ?? -999) - (a.initiativeRoll ?? -999));
+    }
+    const srcTok = state.map.tokens[src.id];
+    state.map.tokens[copy.id] = {
+      x: 0,
+      y: 0,
+      size: srcTok?.size || 1,
+      hidden: true,
+      staged: true,
+      darkvision: srcTok?.darkvision ?? 0,
+      light: 'none'
+    };
+    addLog('DM', `clona a ${src.name} → ${cloneName}`, `${copy.hp} PG · CA ${copy.ac} · En reserva del mapa`, '⧉');
+    saveState();
+    renderAll();
+    toast(`${cloneName} clonado en la Reserva del DM (arrástralo al mapa)`);
+    return copy;
+  }
+
   function syncInitInputsToState() {
     $$('#initEditList input').forEach(inp => {
       const c = byId(inp.dataset.id);
@@ -2745,16 +2805,19 @@
     saveState(); renderAll(); closeDialog(dialogs.initiative); toast('Iniciativas ordenadas de mayor a menor');
   });
 
-  // Add Enemy
+  // Add Enemy (1 or multiple, staged in off-map DM reserve by default)
   const openAddEnemy = () => {
     pendingEnemyUploadDataUrl = '';
-    $('#enemyName').value = ''; $('#enemyInitRoll').value = ''; $('#enemyInit').value = '1';
+    $('#enemyName').value = ''; $('#enemyCount').value = '1'; $('#enemyInitRoll').value = ''; $('#enemyInit').value = '1';
     $('#enemyHp').value = '25/25'; $('#enemyAc').value = '15'; $('#enemySpeed').value = '9 m';
     $('#enemyAtk').value = '5'; $('#enemyDmg').value = '1d8+3'; $('#enemyImageUrl').value = '';
+    const stageChk = $('#enemyStageCheck');
+    if (stageChk) stageChk.checked = true;
     openDialog(dialogs.combatant);
   };
   $('#addCombatant').addEventListener('click', openAddEnemy);
   $('#addTarget').addEventListener('click', openAddEnemy);
+  $('#mapAddEnemySideBtn')?.addEventListener('click', openAddEnemy);
   $('#uploadEnemyImgBtn').addEventListener('click', () => $('#enemyImageFile').click());
   $('#enemyImageFile').addEventListener('change', e => {
     readImageFileAsDataUrl(e.target.files[0], url => { pendingEnemyUploadDataUrl = url; $('#enemyImageUrl').value = '(Imagen local cargada)'; toast('Imagen cargada'); });
@@ -2763,7 +2826,10 @@
   $('#searchEnemyGoogleBtn').addEventListener('click', () => window.open(googleImagesUrl($('#enemyName').value.trim() || 'dnd monster'), '_blank', 'noopener,noreferrer'));
 
   $('#saveEnemy').addEventListener('click', () => {
-    const name = $('#enemyName').value.trim() || `Adversario ${state.combatants.filter(x => x.type === 'enemy').length + 1}`;
+    const rawName = $('#enemyName').value.trim();
+    const count = Math.max(1, Math.min(20, parseInt($('#enemyCount')?.value, 10) || 1));
+    const stageInReserve = $('#enemyStageCheck') ? $('#enemyStageCheck').checked : true;
+    const baseName = rawName || 'Adversario';
     const hpParts = $('#enemyHp').value.split('/').map(x => parseInt(x, 10));
     const maxHp = Math.max(1, hpParts[1] || hpParts[0] || 25);
     const hp = Math.max(0, Math.min(maxHp, Number.isFinite(hpParts[0]) ? hpParts[0] : maxHp));
@@ -2772,21 +2838,52 @@
     const initRoll = initRollRaw !== '' && Number.isFinite(Number(initRollRaw)) ? Number(initRollRaw) : null;
     const urlInput = $('#enemyImageUrl').value.trim();
     const avatar = pendingEnemyUploadDataUrl || (urlInput && urlInput !== '(Imagen local cargada)' ? urlInput : '');
+    const acVal = Math.max(1, parseInt($('#enemyAc').value, 10) || 12);
+    const speedVal = parseSpeedValue($('#enemySpeed').value, 9);
+    const atkVal = parseInt($('#enemyAtk').value, 10) || 4;
+    const dmgVal = $('#enemyDmg').value.trim() || '1d8+2';
 
-    const enemy = hydrateCombatant({
-      id: `enemy-${Date.now()}`, name, avatar, owner: 'Adversario', type: 'enemy', species: 'Enemigo', level: 1,
-      className: 'Adversario', hp, maxHp, ac: Math.max(1, parseInt($('#enemyAc').value, 10) || 12),
-      initiative: initMod, initiativeRoll: initRoll, speed: parseSpeedValue($('#enemySpeed').value, 9),
-      weapons: [{ name: 'Ataque principal', attack: parseInt($('#enemyAtk').value, 10) || 4, damage: $('#enemyDmg').value.trim() || '1d8+2', type: 'daño' }]
-    });
+    ensureMapState(state);
+    const usedNames = new Set(state.combatants.map(x => String(x.name || '').trim().toLowerCase()));
+    const created = [];
+    const stamp = Date.now();
 
-    state.combatants.push(enemy);
+    for (let i = 0; i < count; i += 1) {
+      let enemyName = baseName;
+      if (count > 1 || !rawName || usedNames.has(baseName.toLowerCase())) {
+        enemyName = nextNumberedEnemyName(baseName, usedNames);
+      } else {
+        usedNames.add(enemyName.toLowerCase());
+      }
+
+      const enemy = hydrateCombatant({
+        id: `enemy-${stamp}-${i}`, name: enemyName, avatar, owner: 'Adversario', type: 'enemy', species: 'Enemigo', level: 1,
+        className: 'Adversario', hp, maxHp, ac: acVal,
+        initiative: initMod, initiativeRoll: initRoll, speed: speedVal,
+        weapons: [{ name: 'Ataque principal', attack: atkVal, damage: dmgVal, type: 'daño' }]
+      });
+
+      state.combatants.push(enemy);
+      if (stageInReserve) {
+        state.map.tokens[enemy.id] = { x: 0, y: 0, size: 1, hidden: true, staged: true, darkvision: 0, light: 'none' };
+      } else {
+        const gs = state.map.gridSize || 56;
+        const col = Math.max(2, Math.floor((state.map.width || 1280) / gs) - 2 - Math.floor(i / 5));
+        const row = 2 + (i % 5);
+        state.map.tokens[enemy.id] = { x: col * gs + gs / 2, y: row * gs + gs / 2, size: 1, hidden: false, staged: false, darkvision: 0, light: 'none' };
+      }
+      created.push(enemy);
+    }
+
     if (initRoll !== null) { state.initiativeRolled = true; state.combatants.sort((a, b) => (b.initiativeRoll ?? -999) - (a.initiativeRoll ?? -999)); }
-    state.currentTargetId = enemy.id;
-    addLog('DM', `añade a ${name}`, `${enemy.hp} PG · CA ${enemy.ac}${initRoll !== null ? ` · Iniciativa ${initRoll}` : ''}`, '＋');
+    state.currentTargetId = created[0].id;
+
+    const labelSummary = count > 1 ? `${count} × ${baseName}` : created[0].name;
+    addLog('DM', `añade ${labelSummary}`, `${hp} PG · CA ${acVal}${initRoll !== null ? ` · Iniciativa ${initRoll}` : ''}${stageInReserve ? ' · En reserva del mapa' : ''}`, '＋');
     saveState(); renderAll(); closeDialog(dialogs.combatant);
-    toast(avatar ? `${name} añadido` : `${name} añadido · buscando imagen automáticamente…`);
-    if (!avatar) fetchAutoEnemyImage(enemy);
+    const suffix = stageInReserve ? ' en la Reserva del DM (arrástralos al mapa)' : '';
+    toast(avatar ? `${labelSummary} añadido${count > 1 ? 's' : ''}${suffix}` : `${labelSummary} añadido${count > 1 ? 's' : ''}${suffix} · buscando imagen…`);
+    if (!avatar) fetchAutoEnemyImage(created);
   });
 
   // Log
@@ -3014,7 +3111,7 @@
   }
 
   function isEnemyVisibleToPlayers(tok, sources) {
-    if (!tok || tok.hidden) return false;
+    if (!tok || tok.hidden || tok.staged) return false;
     const m = state.map;
     if (!m.fogEnabled || (m.lighting || 'day') === 'day') return true;
     return sources.some(s => Math.hypot(tok.x - s.x, tok.y - s.y) <= s.dimPx);
@@ -3028,7 +3125,6 @@
     Object.keys(m.tokens).forEach(id => { if (!validIds.has(id)) delete m.tokens[id]; });
 
     let pcIdx = 0;
-    let enemyIdx = 0;
     state.combatants.forEach(c => {
       if (m.tokens[c.id]) {
         if (m.tokens[c.id].darkvision === undefined && c.type !== 'enemy') {
@@ -3038,14 +3134,12 @@
         return;
       }
       if (c.type === 'enemy') {
-        const col = Math.max(4, Math.floor(m.width / gs) - 3 - Math.floor(enemyIdx / 5));
-        const row = 2 + (enemyIdx % 5);
-        m.tokens[c.id] = { x: col * gs + gs / 2, y: row * gs + gs / 2, size: 1, hidden: false, darkvision: 0, light: 'none' };
-        enemyIdx++;
+        // New enemies start off-map in the DM Reserve tray (invisible to players until dragged onto the map)
+        m.tokens[c.id] = { x: 0, y: 0, size: 1, hidden: true, staged: true, darkvision: 0, light: 'none' };
       } else {
         const col = 2 + Math.floor(pcIdx / 4);
         const row = 2 + (pcIdx % 4);
-        m.tokens[c.id] = { x: col * gs + gs / 2, y: row * gs + gs / 2, size: 1, hidden: false, darkvision: getDefaultDarkvisionMeters(c), light: 'none' };
+        m.tokens[c.id] = { x: col * gs + gs / 2, y: row * gs + gs / 2, size: 1, hidden: false, staged: false, darkvision: getDefaultDarkvisionMeters(c), light: 'none' };
         pcIdx++;
       }
     });
@@ -3163,13 +3257,13 @@
       });
     }
 
-    // Render Tokens & Custom Markers on stage
+    // Render Tokens & Custom Markers on stage (skip enemies staged in DM reserve)
     const layer = $('#mapTokensLayer');
     layer.replaceChildren();
 
     state.combatants.forEach(c => {
       const tok = m.tokens[c.id];
-      if (!tok) return;
+      if (!tok || tok.staged) return;
       const sizeMult = Number(tok.size) || 1;
       const px = Math.max(30, Math.round(m.gridSize * sizeMult * 0.92));
       const hiddenInDark = c.type === 'enemy' && !isEnemyVisibleToPlayers(tok, visionSources);
@@ -3248,14 +3342,82 @@
       layer.append(el);
     });
 
+    // Render DM Off-Map Enemy Reserve Tray (drag onto map to position!)
+    const reserveRoot = $('#mapReserveList');
+    const reserveCountEl = $('#mapReserveCount');
+    if (reserveRoot) {
+      reserveRoot.replaceChildren();
+      const stagedEnemies = state.combatants.filter(c => c.type === 'enemy' && m.tokens[c.id]?.staged);
+      if (reserveCountEl) reserveCountEl.textContent = String(stagedEnemies.length);
+      if (!stagedEnemies.length) {
+        const empty = document.createElement('p');
+        empty.className = 'empty-targets reserve-empty';
+        empty.textContent = 'Sin enemigos en espera. Al añadir o clonar adversarios aparecen aquí ocultos para que los arrastres al mapa.';
+        reserveRoot.append(empty);
+      } else {
+        stagedEnemies.forEach(c => {
+          const tok = m.tokens[c.id];
+          const chip = document.createElement('div');
+          chip.className = 'reserve-enemy-chip';
+          chip.title = 'Arrastra hacia el mapa para ubicar este enemigo';
+
+          const grip = document.createElement('span');
+          grip.className = 'reserve-grip';
+          grip.textContent = '⠿';
+
+          const av = document.createElement('div');
+          av.className = 'map-roster-avatar enemy-reserve-av';
+          if (c.avatar) {
+            const img = document.createElement('img');
+            img.src = c.avatar; img.alt = c.name;
+            img.draggable = false;
+            img.onerror = () => { img.remove(); av.textContent = c.name.slice(0, 1).toUpperCase(); };
+            av.append(img);
+          } else {
+            av.textContent = c.name.slice(0, 1).toUpperCase();
+          }
+
+          const info = document.createElement('div');
+          info.className = 'reserve-enemy-info';
+          info.innerHTML = '<b></b><small></small>';
+          info.querySelector('b').textContent = c.name;
+          info.querySelector('small').textContent = `PG ${c.hp}/${c.maxHp} · CA ${c.ac ?? '—'} · Arrastra al mapa`;
+
+          const actions = document.createElement('div');
+          actions.className = 'reserve-enemy-actions';
+
+          const cloneBtn = document.createElement('button');
+          cloneBtn.type = 'button';
+          cloneBtn.textContent = '⧉';
+          cloneBtn.title = 'Clonar enemigo';
+          cloneBtn.addEventListener('pointerdown', e => e.stopPropagation());
+          cloneBtn.addEventListener('click', e => { e.stopPropagation(); cloneEnemy(c.id); });
+
+          const delBtn = document.createElement('button');
+          delBtn.type = 'button';
+          delBtn.className = 'reserve-del-btn';
+          delBtn.textContent = '×';
+          delBtn.title = 'Eliminar enemigo';
+          delBtn.addEventListener('pointerdown', e => e.stopPropagation());
+          delBtn.addEventListener('click', e => { e.stopPropagation(); removeCombatant(c.id); });
+
+          actions.append(cloneBtn, delBtn);
+          chip.append(grip, av, info, actions);
+          attachReserveDrag(chip, c, tok);
+          reserveRoot.append(chip);
+        });
+      }
+    }
+
     // Render Map Side Panel: Combatant Roster (with Darkvision & Torch/Light controls for PCs!)
     const rosterRoot = $('#mapRosterList');
     rosterRoot.replaceChildren();
     state.combatants.forEach(c => {
       const tok = m.tokens[c.id];
+      const isStaged = !!tok?.staged;
       const hiddenInDark = c.type === 'enemy' && !isEnemyVisibleToPlayers(tok, visionSources);
       const row = document.createElement('div');
-      row.className = `map-roster-row${c.id === state.activeTurnId ? ' active-row' : ''}`;
+      row.className = `map-roster-row${c.id === state.activeTurnId ? ' active-row' : ''}${isStaged ? ' staged-row' : ''}`;
 
       const av = document.createElement('div');
       av.className = 'map-roster-avatar';
@@ -3273,10 +3435,12 @@
       info.innerHTML = '<b></b><small></small>';
       info.querySelector('b').textContent = c.name;
       info.querySelector('small').textContent = c.type === 'enemy'
-        ? `PG ${c.hp}/${c.maxHp} · ${tok?.hidden ? 'Oculto (DM)' : hiddenInDark ? '🌑 Invisible en oscuridad' : '👁 Visible a jugadores'}`
+        ? isStaged
+          ? `PG ${c.hp}/${c.maxHp} · En reserva (arrastra al mapa)`
+          : `PG ${c.hp}/${c.maxHp} · ${tok?.hidden ? 'Oculto (DM)' : hiddenInDark ? '🌑 Invisible en oscuridad' : '👁 Visible a jugadores'}`
         : `PG ${c.hp}/${c.maxHp} · Vis. osc. ${tok?.darkvision ?? 0} m`;
       info.addEventListener('click', () => {
-        if (tok) centerMapOnPoint(tok.x, tok.y);
+        if (tok && !tok.staged) centerMapOnPoint(tok.x, tok.y);
         inspectCombatant(c.id);
       });
 
@@ -3293,18 +3457,46 @@
         renderMapView();
       });
 
-      const visBtn = document.createElement('button');
-      visBtn.type = 'button';
-      visBtn.textContent = tok?.hidden ? '◌' : '👁';
-      visBtn.title = tok?.hidden ? 'Mostrar a los jugadores (si está en visión)' : 'Ocultar a los jugadores (solo DM)';
-      if (tok?.hidden) visBtn.className = 'pin-hidden-btn';
-      visBtn.addEventListener('click', () => {
-        if (tok) tok.hidden = !tok.hidden;
-        saveState();
-        renderMapView();
-      });
+      ctrls.append(sizeSel);
 
-      ctrls.append(sizeSel, visBtn);
+      if (c.type === 'enemy') {
+        const cloneBtn = document.createElement('button');
+        cloneBtn.type = 'button';
+        cloneBtn.textContent = '⧉';
+        cloneBtn.title = 'Clonar adversario (en reserva)';
+        cloneBtn.addEventListener('click', () => cloneEnemy(c.id));
+        ctrls.append(cloneBtn);
+
+        if (!isStaged && tok) {
+          const backBtn = document.createElement('button');
+          backBtn.type = 'button';
+          backBtn.textContent = '↩';
+          backBtn.title = 'Quitar del mapa y devolver a la reserva (oculto)';
+          backBtn.addEventListener('click', () => {
+            tok.staged = true;
+            tok.hidden = true;
+            saveState();
+            renderMapView();
+            toast(`${c.name} devuelto a la Reserva del DM`);
+          });
+          ctrls.append(backBtn);
+        }
+      }
+
+      if (!isStaged) {
+        const visBtn = document.createElement('button');
+        visBtn.type = 'button';
+        visBtn.textContent = tok?.hidden ? '◌' : '👁';
+        visBtn.title = tok?.hidden ? 'Mostrar a los jugadores (si está en visión)' : 'Ocultar a los jugadores (solo DM)';
+        if (tok?.hidden) visBtn.className = 'pin-hidden-btn';
+        visBtn.addEventListener('click', () => {
+          if (tok) tok.hidden = !tok.hidden;
+          saveState();
+          renderMapView();
+        });
+        ctrls.append(visBtn);
+      }
+
       row.append(av, info, ctrls);
 
       // Vision & Light source controls for PCs
@@ -3379,6 +3571,81 @@
         mkRoot.append(row);
       });
     }
+  }
+
+  function attachReserveDrag(el, combatant, tok) {
+    el.addEventListener('pointerdown', e => {
+      if (e.button !== 0) return;
+      if (e.target.closest('button')) return;
+      e.preventDefault();
+      el.setPointerCapture(e.pointerId);
+      el.classList.add('dragging-reserve');
+
+      const vp = $('#mapViewport');
+      const ghost = document.createElement('div');
+      ghost.className = 'reserve-drag-ghost';
+      if (combatant.avatar) {
+        const img = document.createElement('img');
+        img.src = combatant.avatar;
+        img.alt = combatant.name;
+        img.onerror = () => { img.remove(); ghost.textContent = combatant.name.slice(0, 1).toUpperCase(); };
+        ghost.append(img);
+      } else {
+        ghost.textContent = combatant.name.slice(0, 1).toUpperCase();
+      }
+      const lbl = document.createElement('span');
+      lbl.textContent = combatant.name;
+      ghost.append(lbl);
+      ghost.style.left = `${e.clientX}px`;
+      ghost.style.top = `${e.clientY}px`;
+      document.body.append(ghost);
+
+      const isOverViewport = (cx, cy) => {
+        if (!vp) return false;
+        const r = vp.getBoundingClientRect();
+        return cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom;
+      };
+
+      const onMove = ev => {
+        ghost.style.left = `${ev.clientX}px`;
+        ghost.style.top = `${ev.clientY}px`;
+        vp?.classList.toggle('drop-ready', isOverViewport(ev.clientX, ev.clientY));
+      };
+
+      const onUp = ev => {
+        el.classList.remove('dragging-reserve');
+        vp?.classList.remove('drop-ready');
+        try { el.releasePointerCapture(ev.pointerId); } catch {}
+        el.removeEventListener('pointermove', onMove);
+        el.removeEventListener('pointerup', onUp);
+        el.removeEventListener('pointercancel', onUp);
+        ghost.remove();
+
+        if (isOverViewport(ev.clientX, ev.clientY) && tok) {
+          let pt = clampToStage(...Object.values(clientToStageCoords(ev.clientX, ev.clientY)));
+          if (state.map.snap) {
+            pt = clampToStage(
+              snapCoord(pt.x, state.map.gridSize, tok.size || 1),
+              snapCoord(pt.y, state.map.gridSize, tok.size || 1)
+            );
+          }
+          const reveal = $('#mapRevealOnDropCheck') ? $('#mapRevealOnDropCheck').checked : true;
+          tok.x = pt.x;
+          tok.y = pt.y;
+          tok.staged = false;
+          tok.hidden = !reveal;
+          saveState();
+          renderAll();
+          toast(reveal
+            ? `${combatant.name} ubicado en el mapa (visible si está en visión)`
+            : `${combatant.name} ubicado en el mapa (oculto · solo DM)`);
+        }
+      };
+
+      el.addEventListener('pointermove', onMove);
+      el.addEventListener('pointerup', onUp);
+      el.addEventListener('pointercancel', onUp);
+    });
   }
 
   function attachTokenDrag(el, combatant, tok) {
@@ -3661,11 +3928,29 @@
   });
 
   $('#mapResetPinsBtn').addEventListener('click', () => {
-    state.map.tokens = {};
-    ensureTokenPositions();
+    const m = state.map;
+    const gs = m.gridSize || 56;
+    let pcIdx = 0;
+    let placedEnemyIdx = 0;
+    state.combatants.forEach(c => {
+      const tok = m.tokens[c.id];
+      if (c.type === 'enemy') {
+        if (!tok || tok.staged) return; // Keep staged enemies safely in DM Reserve
+        const col = Math.max(4, Math.floor(m.width / gs) - 3 - Math.floor(placedEnemyIdx / 5));
+        const row = 2 + (placedEnemyIdx % 5);
+        tok.x = col * gs + gs / 2;
+        tok.y = row * gs + gs / 2;
+        placedEnemyIdx += 1;
+      } else {
+        const col = 2 + Math.floor(pcIdx / 4);
+        const row = 2 + (pcIdx % 4);
+        m.tokens[c.id] = { ...(tok || {}), x: col * gs + gs / 2, y: row * gs + gs / 2, size: tok?.size || 1, hidden: !!tok?.hidden, staged: false, darkvision: tok?.darkvision ?? getDefaultDarkvisionMeters(c), light: tok?.light || 'none' };
+        pcIdx += 1;
+      }
+    });
     saveState();
     renderMapView();
-    toast('Pines realineados en formación inicial');
+    toast('Pines en el mapa realineados (la reserva no se modificó)');
   });
 
   const openNewMarker = () => {

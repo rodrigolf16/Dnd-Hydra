@@ -90,7 +90,7 @@
 
     const mapTokens = state.map?.tokens || {};
     const byId = id => state.combatants.find(c => c.id === id) || null;
-    const isHiddenEnemy = c => c.type === 'enemy' && !!mapTokens[c.id]?.hidden;
+    const isHiddenEnemy = c => c.type === 'enemy' && (!!mapTokens[c.id]?.hidden || !!mapTokens[c.id]?.staged);
 
     const active = byId(state.activeTurnId);
     const activeTurnName = !active

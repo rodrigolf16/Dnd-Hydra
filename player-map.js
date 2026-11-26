@@ -325,12 +325,12 @@
     if (asideRound) asideRound.textContent = `RONDA ${roundNum}`;
     if (asideLight) asideLight.textContent = LIGHT_LABELS[light] || LIGHT_LABELS.day;
 
-    // Filter out hidden enemies (never spoil!) and defeated enemies if skipDefeated is on
+    // Filter out hidden/staged enemies (never spoil!) and defeated enemies if skipDefeated is on
     const visibleCombatants = st.combatants.filter(c => {
       const isEnemy = c.type === 'enemy';
       if (!isEnemy) return true;
       const tok = m.tokens?.[c.id];
-      if (tok?.hidden) return false;
+      if (tok?.hidden || tok?.staged) return false;
       if (tok && !isPointVisibleToPlayers(tok.x, tok.y, st, sources)) return false;
       if (st.skipDefeated !== false && (c.defeated || c.hp <= 0)) return false;
       return true;
@@ -462,7 +462,7 @@
     // Top HUD
     $('#playerCampaignName').textContent = window.CAMPAIGN?.name || 'Las Grietas de Aethelgard';
     const act = state.combatants.find(c => c.id === state.activeTurnId);
-    const actHiddenEnemy = act && act.type === 'enemy' && !!m.tokens?.[act.id]?.hidden;
+    const actHiddenEnemy = act && act.type === 'enemy' && (!!m.tokens?.[act.id]?.hidden || !!m.tokens?.[act.id]?.staged);
     $('#playerTurnBanner').textContent = act
       ? `Turno actual: ${act.type === 'enemy' ? (actHiddenEnemy ? 'Adversario' : act.name) : act.name}`
       : 'Encuentro en curso';
@@ -491,13 +491,13 @@
 
     const sources = computeVisionSources(state);
 
-    // Render Tokens (ONLY visible PCs + enemies inside active vision & not hidden by DM!)
+    // Render Tokens (ONLY visible PCs + enemies inside active vision & not hidden/staged by DM!)
     const layer = $('#playerTokensLayer');
     layer.replaceChildren();
 
     state.combatants.forEach(c => {
       const tok = m.tokens?.[c.id];
-      if (!tok || tok.hidden) return;
+      if (!tok || tok.hidden || tok.staged) return;
 
       const isEnemy = c.type === 'enemy';
       if (isEnemy && !isPointVisibleToPlayers(tok.x, tok.y, state, sources)) {

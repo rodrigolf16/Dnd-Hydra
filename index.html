@@ -501,13 +501,28 @@
             </div>
 
             <aside class="map-sidepanel">
+              <div class="side-card reserve-card" id="mapReserveCard">
+                <div class="side-card-head">
+                  <div>
+                    <span class="section-kicker">SOLO DM · FUERA DEL MAPA</span>
+                    <h3>Reserva de enemigos <span class="reserve-count-badge" id="mapReserveCount">0</span></h3>
+                  </div>
+                  <button type="button" class="more-btn" id="mapAddEnemySideBtn" title="Añadir uno o varios enemigos a la reserva">＋</button>
+                </div>
+                <label class="reserve-reveal-toggle">
+                  <input type="checkbox" id="mapRevealOnDropCheck" checked>
+                  <span>Revelar a jugadores al soltar en el mapa</span>
+                </label>
+                <div class="map-reserve-list" id="mapReserveList"></div>
+              </div>
+
               <div class="side-card">
                 <div class="side-card-head">
                   <div>
                     <span class="section-kicker">FIGURAS EN EL MAPA</span>
                     <h3>Pines de combatientes</h3>
                   </div>
-                  <button type="button" class="mini-link" id="mapResetPinsBtn" title="Reordenar todos los pines en formación inicial">Alinear</button>
+                  <button type="button" class="mini-link" id="mapResetPinsBtn" title="Reordenar los pines ubicados en el mapa">Alinear</button>
                 </div>
                 <div class="map-roster-list" id="mapRosterList"></div>
               </div>
@@ -919,18 +934,26 @@
       <h2>Añadir adversario</h2>
       <div class="form-grid">
         <label class="field-label">Nombre<input id="enemyName" placeholder="Ej. Hobgoblin, Dragón rojo, Lobo"></label>
-        <label class="field-label">Iniciativa física (opcional)<input id="enemyInitRoll" type="number" placeholder="Resultado (ej. 14)"></label>
+        <label class="field-label">Cantidad<input id="enemyCount" type="number" min="1" max="20" value="1"></label>
         <label class="field-label">PG actuales / máximos<input id="enemyHp" value="25/25"></label>
         <label class="field-label">Clase de armadura<input id="enemyAc" type="number" value="15"></label>
         <label class="field-label">Velocidad (m)<input id="enemySpeed" value="9 m"></label>
+        <label class="field-label">Iniciativa física (opcional)<input id="enemyInitRoll" type="number" placeholder="Resultado (ej. 14)"></label>
         <label class="field-label">Mod. iniciativa<input id="enemyInit" type="number" value="1"></label>
         <label class="field-label">Bonificador ataque<input id="enemyAtk" type="number" value="5"></label>
-        <label class="field-label">Daño del ataque<input id="enemyDmg" value="1d8+3"></label>
+        <label class="field-label span-2">Daño del ataque<input id="enemyDmg" value="1d8+3"></label>
         <label class="field-label span-2">
           Imagen (URL opcional — si lo dejas vacío se busca automáticamente por nombre)
           <input id="enemyImageUrl" placeholder="Vacío = búsqueda automática por nombre">
         </label>
       </div>
+      <label class="dread-toggle">
+        <input type="checkbox" id="enemyStageCheck" checked>
+        <span>
+          <b>Enviar a la Reserva del DM (fuera del mapa)</b>
+          <small>No aparecen a los jugadores hasta que los arrastres al mapa táctico para ubicarlos.</small>
+        </span>
+      </label>
       <div class="n20-actions-grid">
         <button type="button" class="outline-btn" id="uploadEnemyImgBtn">⇧ Subir imagen</button>
         <button type="button" class="outline-btn" id="searchEnemyGoogleBtn">🔍 Ver en Google Imágenes</button>
