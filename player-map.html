@@ -11,7 +11,9 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body class="player-map-body">
-  <header class="player-map-hud">
+  <div class="fs-hover-zone" id="fsHoverZone" aria-hidden="true"></div>
+
+  <header class="player-map-hud" id="playerMapHud">
     <div class="player-hud-left">
       <span class="brand-mark small-mark">R</span>
       <div>
@@ -22,27 +24,44 @@
     <div class="player-hud-right">
       <span class="light-pill" id="playerLightBadge">☀ Día · Luz brillante</span>
       <span class="light-pill" id="playerRoundBadge">RONDA 1</span>
+      <button type="button" class="outline-btn" id="pToggleTurnsBtn" title="Mostrar/ocultar columna de próximos turnos (tecla T)">☰ Turnos: Auto</button>
       <button type="button" class="icon-btn" id="pZoomOut" title="Alejar">−</button>
       <span class="map-zoom-val" id="pZoomLabel">100%</span>
       <button type="button" class="icon-btn" id="pZoomIn" title="Acercar">＋</button>
       <button type="button" class="outline-btn" id="pFitBtn" title="Ajustar mapa a la pantalla">Centrar</button>
-      <button type="button" class="outline-btn" id="pFullscreenBtn" title="Pantalla completa">⛶</button>
+      <button type="button" class="outline-btn" id="pFullscreenBtn" title="Pantalla completa (tecla F)">⛶ Pantalla completa</button>
     </div>
   </header>
 
-  <main class="player-map-viewport" id="playerViewport">
-    <div class="map-stage" id="playerStage">
-      <img id="playerBgImg" class="map-bg-img" alt="Mapa táctico" hidden draggable="false">
-      <div class="map-grid-overlay" id="playerGridOverlay"></div>
-      <div class="map-tokens-layer" id="playerTokensLayer"></div>
-      <canvas class="fog-canvas" id="playerFogCanvas"></canvas>
-    </div>
+  <div class="player-map-workspace" id="playerWorkspace">
+    <main class="player-map-viewport" id="playerViewport">
+      <div class="map-stage" id="playerStage">
+        <img id="playerBgImg" class="map-bg-img" alt="Mapa táctico" hidden draggable="false">
+        <div class="map-grid-overlay" id="playerGridOverlay"></div>
+        <div class="map-tokens-layer" id="playerTokensLayer"></div>
+        <canvas class="fog-canvas" id="playerFogCanvas"></canvas>
+      </div>
 
-    <div class="player-empty-msg" id="playerEmptyMsg" hidden>
-      <b>Mapa listo para los jugadores</b>
-      <span>Cuando el DM cargue un mapa o mueva figuras en su pestaña, se actualizará aquí en tiempo real con niebla de guerra y visión de cada personaje.</span>
-    </div>
-  </main>
+      <div class="player-empty-msg" id="playerEmptyMsg" hidden>
+        <b>Mapa listo para los jugadores</b>
+        <span>Cuando el DM cargue un mapa o mueva figuras en su pestaña, se actualizará aquí en tiempo real con niebla de guerra y visión de cada personaje.</span>
+      </div>
+    </main>
+
+    <aside class="player-turns-aside" id="playerTurnsAside" hidden aria-label="Próximos turnos">
+      <div class="player-turns-head">
+        <div>
+          <span class="player-turns-kicker">ORDEN DE COMBATE</span>
+          <h2>Próximos turnos</h2>
+        </div>
+        <span class="player-turns-round" id="asideRoundBadge">RONDA 1</span>
+      </div>
+      <div class="player-turns-list" id="playerTurnsList"></div>
+      <div class="player-turns-foot">
+        <small id="asideLightFooter">☀ Día · Luz brillante</small>
+      </div>
+    </aside>
+  </div>
 
   <script src="campaign-data.js"></script>
   <script src="player-map.js"></script>

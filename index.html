@@ -849,9 +849,12 @@
         <button type="button" class="outline-btn" id="searchGoogleEditBtn">🔍 Buscar en Google</button>
         <input type="file" id="avatarFileInput" accept="image/*" hidden>
       </div>
-      <div class="dialog-buttons">
-        <button type="button" class="outline-btn" data-close-dialog>Cancelar</button>
-        <button type="button" class="primary-btn" id="saveCharacter">Guardar <span>✓</span></button>
+      <div class="dialog-buttons edit-dialog-footer">
+        <button type="button" class="danger-btn" id="deleteCharacterBtn" title="Eliminar este personaje del encuentro">🗑 Eliminar</button>
+        <div class="dialog-buttons-right">
+          <button type="button" class="outline-btn" data-close-dialog>Cancelar</button>
+          <button type="button" class="primary-btn" id="saveCharacter">Guardar <span>✓</span></button>
+        </div>
       </div>
     </form>
   </dialog>

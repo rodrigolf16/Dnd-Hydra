@@ -1586,8 +1586,8 @@
 
       if (c.type === 'enemy') {
         hpBtns.append(makeMini('🔍', 'Buscar imagen en Google', () => window.open(googleImagesUrl(c.name), '_blank', 'noopener')));
-        hpBtns.append(makeMini('✕', 'Eliminar adversario', () => removeEnemy(c.id), 'remove-enemy-btn'));
       }
+      hpBtns.append(makeMini('✕', c.type === 'enemy' ? 'Eliminar adversario' : 'Eliminar personaje', () => removeCombatant(c.id), 'remove-enemy-btn'));
       sub.append(hpBtns);
 
       if (c.type === 'enemy') {
@@ -2443,17 +2443,28 @@
     openDialog(dialogs.hp);
   }
 
-  function removeEnemy(id) {
+  function removeCombatant(id) {
     const c = byId(id);
-    if (!c || c.type !== 'enemy') return;
-    if (!confirm(`¿Eliminar a «${c.name}» del encuentro?`)) return;
+    if (!c) return false;
+    if (state.combatants.length <= 1) {
+      toast('Debe quedar al menos un combatiente en el encuentro');
+      return false;
+    }
+    const isPc = c.type !== 'enemy';
+    const msg = isPc
+      ? `¿Eliminar al personaje «${c.name}» del encuentro?\n\n(Si lo necesitas de vuelta más adelante, puedes restaurar el grupo desde ⚙ Ajustes → Reiniciar encuentro o sincronizarlo desde Nivel20).`
+      : `¿Eliminar a «${c.name}» del encuentro?`;
+    if (!confirm(msg)) return false;
+
     state.combatants = state.combatants.filter(x => x.id !== id);
     state.combatants.forEach(x => { if (x.markedTargetId === id) x.markedTargetId = null; });
+    if (state.map?.tokens?.[id]) delete state.map.tokens[id];
     if (state.activeTurnId === id) state.activeTurnId = state.combatants[0]?.id || null;
     if (state.viewedId === id) state.viewedId = state.activeTurnId;
     if (state.currentTargetId === id) state.currentTargetId = state.combatants.find(x => x.id !== state.viewedId)?.id || null;
-    addLog('DM', `retira a ${c.name}`, 'Eliminado del encuentro', '−');
+    addLog('DM', `retira a ${c.name}`, isPc ? 'Personaje eliminado del encuentro' : 'Adversario eliminado del encuentro', '−');
     saveState(); renderAll(); toast(`${c.name} eliminado`);
+    return true;
   }
 
   function syncInitInputsToState() {
@@ -2816,6 +2827,11 @@
     else if (avatarRaw && avatarRaw !== '(Imagen local cargada)') c.avatar = avatarRaw;
     if (c.speed !== prevSpeed) { c.turnMovement = Math.min(c.speed, c.turnMovement + Math.max(0, c.speed - prevSpeed)); c.turnState.movement = c.turnMovement > 0; }
     saveState(); renderAll(); closeDialog(dialogs.edit); toast(`Ficha de ${c.name} actualizada`);
+  });
+  $('#deleteCharacterBtn')?.addEventListener('click', () => {
+    const c = viewed();
+    if (!c) return;
+    if (removeCombatant(c.id)) closeDialog(dialogs.edit);
   });
 
   // Import character JSON

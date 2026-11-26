@@ -12,6 +12,8 @@
   let userMovedCamera = false;
   let exploredCanvas = null; // Offscreen explored-terrain memory canvas
   let exploredMapKey = '';
+  let turnsMode = 'auto'; // 'auto' | 'show' | 'hide'
+  let hudRevealTimer = null;
 
   const LIGHT_LABELS = {
     day: '☀ Día · Luz brillante',
@@ -245,12 +247,14 @@
 
   function fitCamera() {
     const vp = $('#playerViewport');
-    if (!vp || !state?.map || vp.clientWidth === 0) return;
+    if (!vp || !state?.map || vp.clientWidth === 0 || vp.clientHeight === 0) return;
     const m = state.map;
     const w = m.width || 1280;
     const h = m.height || 840;
-    const pad = 18;
-    viewZoom = Math.max(0.25, Math.min(1.6, Math.min((vp.clientWidth - pad * 2) / w, (vp.clientHeight - pad * 2) / h)));
+    const isFs = !!document.fullscreenElement;
+    const pad = isFs ? 6 : 16;
+    const maxFitZoom = isFs ? 3.5 : 2.4;
+    viewZoom = Math.max(0.2, Math.min(maxFitZoom, Math.min((vp.clientWidth - pad * 2) / w, (vp.clientHeight - pad * 2) / h)));
     viewPanX = Math.round((vp.clientWidth - w * viewZoom) / 2);
     viewPanY = Math.round((vp.clientHeight - h * viewZoom) / 2);
     applyCamera();
@@ -262,6 +266,193 @@
     return pct <= 25 ? 'hp-low' : pct <= 55 ? 'hp-mid' : '';
   }
 
+  // Decides whether to display the Next Turns sidebar automatically when map resolution leaves horizontal room
+  function updateTurnsPanelVisibility(refit = true) {
+    const aside = $('#playerTurnsAside');
+    const ws = $('#playerWorkspace');
+    const btn = $('#pToggleTurnsBtn');
+    if (!aside || !ws) return;
+
+    let shouldShow = false;
+    if (turnsMode === 'show') {
+      shouldShow = true;
+    } else if (turnsMode === 'hide') {
+      shouldShow = false;
+    } else {
+      // Auto mode: show when there's unused horizontal space left over by the image aspect ratio (or no map yet)
+      const W = ws.clientWidth || window.innerWidth;
+      const H = ws.clientHeight || window.innerHeight;
+      if (W >= 820 && H > 0) {
+        const m = state?.map;
+        if (!m || !m.bgImage) {
+          shouldShow = true;
+        } else {
+          const mapRatio = (m.width || 1280) / Math.max(1, m.height || 840);
+          const fittedMapW = H * mapRatio;
+          const spareHorizontalPx = W - fittedMapW;
+          shouldShow = spareHorizontalPx >= 140;
+        }
+      }
+    }
+
+    const changed = aside.hidden === shouldShow;
+    aside.hidden = !shouldShow;
+
+    if (btn) {
+      const labelMap = {
+        auto: shouldShow ? '☰ Turnos: Auto (ON)' : '☰ Turnos: Auto',
+        show: '☰ Turnos: Fijo',
+        hide: '☰ Turnos: Oculto'
+      };
+      btn.textContent = labelMap[turnsMode] || '☰ Turnos';
+      btn.classList.toggle('active-toggle', shouldShow);
+    }
+
+    if (changed && refit && !userMovedCamera) {
+      requestAnimationFrame(() => fitCamera());
+    }
+  }
+
+  function renderUpcomingTurns(st, sources) {
+    const list = $('#playerTurnsList');
+    if (!list || !st || !Array.isArray(st.combatants)) return;
+
+    const m = st.map || {};
+    const light = m.lighting || 'day';
+    const roundNum = st.round || 1;
+    const asideRound = $('#asideRoundBadge');
+    const asideLight = $('#asideLightFooter');
+    if (asideRound) asideRound.textContent = `RONDA ${roundNum}`;
+    if (asideLight) asideLight.textContent = LIGHT_LABELS[light] || LIGHT_LABELS.day;
+
+    // Filter out hidden enemies (never spoil!) and defeated enemies if skipDefeated is on
+    const visibleCombatants = st.combatants.filter(c => {
+      const isEnemy = c.type === 'enemy';
+      if (!isEnemy) return true;
+      const tok = m.tokens?.[c.id];
+      if (tok?.hidden) return false;
+      if (tok && !isPointVisibleToPlayers(tok.x, tok.y, st, sources)) return false;
+      if (st.skipDefeated !== false && (c.defeated || c.hp <= 0)) return false;
+      return true;
+    });
+
+    list.replaceChildren();
+    if (!visibleCombatants.length) {
+      const empty = document.createElement('div');
+      empty.className = 'pturn-empty';
+      empty.textContent = 'Sin combatientes visibles en iniciativa.';
+      list.append(empty);
+      return;
+    }
+
+    // Rotate order so the active combatant is first, followed by the upcoming turns in cycle order
+    let startIdx = visibleCombatants.findIndex(c => c.id === st.activeTurnId);
+    if (startIdx < 0) {
+      // Active turn might be a hidden enemy; find the next visible combatant after it in full combatants list
+      const rawIdx = st.combatants.findIndex(c => c.id === st.activeTurnId);
+      if (rawIdx >= 0) {
+        for (let step = 1; step <= st.combatants.length; step += 1) {
+          const cand = st.combatants[(rawIdx + step) % st.combatants.length];
+          const found = visibleCombatants.findIndex(v => v.id === cand.id);
+          if (found >= 0) { startIdx = found; break; }
+        }
+      }
+      if (startIdx < 0) startIdx = 0;
+    }
+
+    const ordered = [
+      ...visibleCombatants.slice(startIdx),
+      ...visibleCombatants.slice(0, startIdx)
+    ];
+
+    ordered.forEach((c, idx) => {
+      const isEnemy = c.type === 'enemy';
+      const isCurrent = c.id === st.activeTurnId;
+      const isNext = (idx === 1 && ordered[0]?.id === st.activeTurnId) || (idx === 0 && !isCurrent);
+      const isDown = !!(c.defeated || c.hp <= 0);
+
+      const card = document.createElement('div');
+      card.className = 'pturn-card';
+      if (isCurrent) card.classList.add('is-current');
+      else if (isNext) card.classList.add('is-next');
+      if (isEnemy) card.classList.add('is-enemy');
+      if (isDown) card.classList.add('is-down');
+
+      const avatar = document.createElement('div');
+      avatar.className = 'pturn-avatar';
+      if (c.avatar) {
+        const img = document.createElement('img');
+        img.src = c.avatar;
+        img.alt = c.name;
+        img.onerror = () => { img.remove(); avatar.textContent = isEnemy ? '⚔' : c.name.slice(0, 1).toUpperCase(); };
+        avatar.append(img);
+      } else {
+        avatar.textContent = isEnemy ? '⚔' : c.name.slice(0, 1).toUpperCase();
+      }
+
+      const body = document.createElement('div');
+      body.className = 'pturn-body';
+
+      const topRow = document.createElement('div');
+      topRow.className = 'pturn-top';
+      const nameEl = document.createElement('b');
+      nameEl.textContent = c.name;
+
+      const badge = document.createElement('span');
+      badge.className = 'pturn-badge';
+      if (isCurrent) {
+        badge.classList.add('now');
+        badge.textContent = 'AHORA';
+      } else if (isNext) {
+        badge.classList.add('next');
+        badge.textContent = 'SIGUIENTE';
+      } else {
+        badge.textContent = `#${idx + 1}`;
+      }
+
+      topRow.append(nameEl, badge);
+      body.append(topRow);
+
+      if (!isEnemy) {
+        // PCs: show HP bar + exact HP so teammates can coordinate heals & actions
+        const hpLine = document.createElement('div');
+        hpLine.className = 'pturn-hp-row';
+        const hpLabel = document.createElement('span');
+        hpLabel.textContent = isDown ? `0 / ${c.maxHp} PG · Caído` : `${c.hp} / ${c.maxHp} PG`;
+        const hpTrack = document.createElement('div');
+        hpTrack.className = 'pturn-hp-track';
+        const hpFill = document.createElement('i');
+        const pct = c.maxHp > 0 ? Math.max(0, Math.min(100, (c.hp / c.maxHp) * 100)) : 0;
+        hpFill.style.width = `${pct}%`;
+        const cls = hpClass(c.hp, c.maxHp);
+        if (cls) hpFill.className = cls;
+        hpTrack.append(hpFill);
+        hpLine.append(hpTrack, hpLabel);
+        body.append(hpLine);
+
+        const effects = [];
+        if (c.raging) effects.push('🔥 Furia');
+        if (c.concentration?.spell) effects.push(`✦ ${c.concentration.spell}`);
+        (c.conditions || []).slice(0, 2).forEach(cond => effects.push(cond));
+        if (effects.length) {
+          const fx = document.createElement('div');
+          fx.className = 'pturn-fx';
+          fx.textContent = effects.join(' · ');
+          body.append(fx);
+        }
+      } else {
+        // Enemies: intentionally NO HP, NO AC, NO stats!
+        const sub = document.createElement('span');
+        sub.className = 'pturn-enemy-sub';
+        sub.textContent = isDown ? 'Adversario · Fuera de combate' : 'Adversario';
+        body.append(sub);
+      }
+
+      card.append(avatar, body);
+      list.append(card);
+    });
+  }
+
   function renderPlayerMap() {
     if (!state || !state.map) return;
     const m = state.map;
@@ -271,8 +462,9 @@
     // Top HUD
     $('#playerCampaignName').textContent = window.CAMPAIGN?.name || 'Las Grietas de Aethelgard';
     const act = state.combatants.find(c => c.id === state.activeTurnId);
+    const actHiddenEnemy = act && act.type === 'enemy' && !!m.tokens?.[act.id]?.hidden;
     $('#playerTurnBanner').textContent = act
-      ? `Turno actual: ${act.type === 'enemy' ? 'Adversario' : act.name}`
+      ? `Turno actual: ${act.type === 'enemy' ? (actHiddenEnemy ? 'Adversario' : act.name) : act.name}`
       : 'Encuentro en curso';
     $('#playerLightBadge').textContent = LIGHT_LABELS[light] || LIGHT_LABELS.day;
     $('#playerRoundBadge').textContent = `RONDA ${state.round || 1}`;
@@ -291,6 +483,8 @@
     const gridEl = $('#playerGridOverlay');
     gridEl.hidden = !m.showGrid;
     gridEl.style.setProperty('--grid-size', `${gs}px`);
+
+    updateTurnsPanelVisibility(false);
 
     if (!userMovedCamera) fitCamera();
     else applyCamera();
@@ -382,6 +576,7 @@
     });
 
     renderFogOfWar(state, sources);
+    renderUpcomingTurns(state, sources);
   }
 
   // =========================================================================
@@ -474,20 +669,78 @@
     const mx = e.clientX - rect.left;
     const my = e.clientY - rect.top;
     const prev = viewZoom;
-    viewZoom = Math.max(0.25, Math.min(2.6, prev * factor));
+    viewZoom = Math.max(0.2, Math.min(3.5, prev * factor));
     viewPanX = mx - ((mx - viewPanX) / prev) * viewZoom;
     viewPanY = my - ((my - viewPanY) / prev) * viewZoom;
     applyCamera();
   }, { passive: false });
 
-  $('#pZoomIn').addEventListener('click', () => { userMovedCamera = true; viewZoom = Math.min(2.6, viewZoom * 1.18); applyCamera(); });
-  $('#pZoomOut').addEventListener('click', () => { userMovedCamera = true; viewZoom = Math.max(0.25, viewZoom * 0.85); applyCamera(); });
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen?.().catch(() => {});
+    } else {
+      document.exitFullscreen?.().catch(() => {});
+    }
+  }
+
+  function revealFullscreenHudTemporarily() {
+    if (!document.fullscreenElement) return;
+    document.body.classList.add('hud-reveal');
+    clearTimeout(hudRevealTimer);
+    hudRevealTimer = setTimeout(() => {
+      const hud = $('#playerMapHud');
+      if (hud && !hud.matches(':hover')) {
+        document.body.classList.remove('hud-reveal');
+      }
+    }, 2400);
+  }
+
+  function syncFullscreenState() {
+    const isFs = !!document.fullscreenElement;
+    document.body.classList.toggle('is-fullscreen', isFs);
+    document.body.classList.remove('hud-reveal');
+    const btn = $('#pFullscreenBtn');
+    if (btn) {
+      btn.textContent = isFs ? '✕ Salir' : '⛶ Pantalla completa';
+      btn.title = isFs ? 'Salir de pantalla completa (Esc / F)' : 'Pantalla completa (tecla F)';
+    }
+    userMovedCamera = false;
+    requestAnimationFrame(() => {
+      updateTurnsPanelVisibility(false);
+      fitCamera();
+    });
+  }
+
+  function cycleTurnsMode() {
+    turnsMode = turnsMode === 'auto' ? 'show' : turnsMode === 'show' ? 'hide' : 'auto';
+    updateTurnsPanelVisibility(true);
+  }
+
+  $('#pZoomIn').addEventListener('click', () => { userMovedCamera = true; viewZoom = Math.min(3.5, viewZoom * 1.18); applyCamera(); });
+  $('#pZoomOut').addEventListener('click', () => { userMovedCamera = true; viewZoom = Math.max(0.2, viewZoom * 0.85); applyCamera(); });
   $('#pFitBtn').addEventListener('click', () => { userMovedCamera = false; fitCamera(); });
-  $('#pFullscreenBtn').addEventListener('click', () => {
-    if (!document.fullscreenElement) document.documentElement.requestFullscreen?.().catch(() => {});
-    else document.exitFullscreen?.().catch(() => {});
+  $('#pFullscreenBtn').addEventListener('click', toggleFullscreen);
+  $('#pToggleTurnsBtn')?.addEventListener('click', cycleTurnsMode);
+
+  $('#fsHoverZone')?.addEventListener('mouseenter', revealFullscreenHudTemporarily);
+  $('#playerMapHud')?.addEventListener('mouseenter', () => clearTimeout(hudRevealTimer));
+  $('#playerMapHud')?.addEventListener('mouseleave', () => {
+    if (document.fullscreenElement) {
+      hudRevealTimer = setTimeout(() => document.body.classList.remove('hud-reveal'), 900);
+    }
   });
-  window.addEventListener('resize', () => { if (!userMovedCamera) fitCamera(); });
+
+  document.addEventListener('fullscreenchange', syncFullscreenState);
+  document.addEventListener('keydown', e => {
+    if (e.target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
+    if (e.key === 'f' || e.key === 'F') { e.preventDefault(); toggleFullscreen(); }
+    if (e.key === 't' || e.key === 'T') { e.preventDefault(); cycleTurnsMode(); }
+  });
+
+  window.addEventListener('resize', () => {
+    updateTurnsPanelVisibility(false);
+    if (!userMovedCamera) fitCamera();
+  });
 
   loadStateFromStorage();
 })();
