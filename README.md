@@ -34,3 +34,17 @@ Extensión de **Chrome / Edge (Manifest V3)** y aplicación web local para el **
   - **Iluminación y visión según D&D 2024:** elige entre **☀ Día**, **🌆 Penumbra**, **🌙 Noche** y **⬛ Oscuridad total**. Cada personaje aplica automáticamente su visión de ficha (**Khael 27 m** por *Visión en la umbra*, **Ojo de Bife_, Kygan y Volstagg 18 m**, **Doozer y Clive 0 m** en oscuridad salvo que lleven **🔥 Antorcha / 🏮 Linterna** o haya una fogata `🔥`).
   - Los enemigos colocados en zonas oscuras o con el ojo oculto (`◌`) permanecen **100% invisibles para los jugadores** hasta entrar en el radio de visión o luz de algún personaje.
 - **Llevar a otra PC:** comparte el archivo **`Ronda-Extension-Chrome.zip`** y cárgalo en `chrome://extensions`. Para pasar un encuentro en curso (con posiciones del mapa incluidas) usa `⚙ Ajustes → ⇩ Exportar / ⇧ Cargar encuentro JSON`.
+
+---
+
+## Guía Móvil para Jugadores (PWA · Modo Híbrido)
+
+Mientras el DM sigue usando la **extensión de Chrome** (con mapa, daños y sincronización de Nivel20), cada jugador puede abrir **`player.html`** en su celular (e instalarlo con *«Agregar a pantalla de inicio»*):
+
+- **Guía de movimientos y dados físicos:** muestra en tiempo real qué acciones, acciones adicionales, reacciones y conjuros puede usar su personaje, y **exactamente qué dados físicos tirar** (con botones rápidos de *Ventaja / Desventaja*, *Crítico ×2*, *Marca del cazador*, *Furia*, *Ataque temerario*, *Frenesí*, *Ataque furtivo*, *Emboscador pavoroso* y *Maestrías de arma* D&D 2024).
+- **Pruebas y salvaciones al instante:** toca cualquier atributo, salvación o habilidad (*Sigilo, Percepción…*) para ver el dado exacto a tirar (`1×d20 + bono`).
+- **Modo Híbrido (Offline + En vivo por QR):**
+  1. **Offline por defecto:** funciona siempre sin servidor ni cuentas con las fichas base en `campaign-data.js`.
+  2. **En vivo con el DM:** en la barra superior de la extensión, el DM pulsa **📱 Celulares → Iniciar sala en vivo**. Aparece un **código QR** y un código de 6 letras; al escanearlo, cada celular recibe en tiempo real **de quién es el turno** (con aviso *«¡Es tu turno!»*), sus **PG / estados / recursos** y cualquier ficha actualizada desde **Nivel20** (sin exponer mapa ni PG/secretos de enemigos).
+- **Publicar para celulares en GitHub Pages (gratis):** en tu repositorio de GitHub entra a **Settings → Pages → Build and deployment → Branch: `main` / `(root)`** y guarda. En ~1 minuto quedará disponible en `https://rodrigolf16.github.io/Dnd-Hydra/player.html`.
+

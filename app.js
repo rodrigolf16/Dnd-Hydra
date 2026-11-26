@@ -138,7 +138,8 @@
     settings: $('#settingsDialog'),
     sheet: $('#sheetDialog'),
     mapMarker: $('#mapMarkerDialog'),
-    mapUrl: $('#mapUrlDialog')
+    mapUrl: $('#mapUrlDialog'),
+    mobileSync: $('#mobileSyncDialog')
   };
 
   // =========================================================================
@@ -668,6 +669,7 @@
 
   const vttChannel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('ronda-vtt-sync') : null;
   let broadcastTimer = null;
+  let mobileHost = null;
 
   function broadcastStateNow() {
     if (!state) return;
@@ -676,6 +678,9 @@
     }
     if (typeof chrome !== 'undefined' && chrome.storage?.local) {
       chrome.storage.local.set({ rondaLiveState: state }).catch(() => {});
+    }
+    if (mobileHost) {
+      mobileHost.broadcastThrottled();
     }
   }
 
@@ -3860,6 +3865,162 @@
       }
     });
   }
+
+  // =========================================================================
+  // MOBILE PLAYER LIVE SYNC (HYBRID QR / WEBRTC)
+  // =========================================================================
+  function renderMobileQrCode(joinUrl) {
+    const box = $('#msQrBox');
+    if (!box) return;
+    if (typeof window.qrcode !== 'function') {
+      box.textContent = 'QR no disponible';
+      return;
+    }
+    try {
+      const qr = window.qrcode(0, 'M');
+      qr.addData(joinUrl);
+      qr.make();
+      box.innerHTML = qr.createSvgTag({ scalable: true, margin: 2 });
+    } catch {
+      box.textContent = 'URL demasiado larga para QR';
+    }
+  }
+
+  function initMobileSyncUI() {
+    if (!window.RondaSync) return;
+    const baseInput = $('#msBaseUrlInput');
+    const codeEl = $('#msRoomCode');
+    const topBtn = $('#mobileSyncTopBtn');
+
+    // If running over http/https (e.g. local preview or GitHub Pages), prefer current origin's player.html as default
+    const defaultUrl = /^https?:$/i.test(location.protocol)
+      ? new URL('player.html', location.href).toString()
+      : window.RondaSync.getSavedPlayerBaseUrl();
+    if (baseInput) baseInput.value = defaultUrl;
+
+    const refreshJoinTargets = code => {
+      const cleanCode = code || window.RondaSync.getSavedRoomCode();
+      if (codeEl) codeEl.textContent = cleanCode;
+      const base = (baseInput?.value || defaultUrl).trim();
+      const joinUrl = window.RondaSync.buildJoinUrl(cleanCode, base);
+      renderMobileQrCode(joinUrl);
+      return joinUrl;
+    };
+
+    const renderHostStatus = info => {
+      const dot = $('#msStatusDot');
+      const title = $('#msStatusTitle');
+      const sub = $('#msStatusSub');
+      const toggleBtn = $('#msToggleHostBtn');
+      const countEl = $('#msClientsCount');
+      const listEl = $('#msClientsList');
+      const count = info.clients?.length || 0;
+
+      if (dot) dot.className = `ms-dot ${info.status}`;
+      if (topBtn) {
+        topBtn.classList.toggle('live', info.status === 'open');
+        const span = topBtn.querySelector('span');
+        if (span) {
+          span.textContent = info.status === 'open'
+            ? (count > 0 ? `Celulares · ${count}` : 'Celulares · En vivo')
+            : 'Celulares';
+        }
+      }
+
+      if (info.status === 'open') {
+        if (title) title.textContent = `Sala activa · Código ${info.code}`;
+        if (sub) sub.textContent = 'Cualquier cambio de turno, PG o ficha de Nivel20 se envía al instante.';
+        if (toggleBtn) toggleBtn.textContent = 'Detener sala';
+      } else if (info.status === 'connecting') {
+        if (title) title.textContent = 'Abriendo sala en vivo…';
+        if (sub) sub.textContent = 'Conectando con el enlace P2P…';
+        if (toggleBtn) toggleBtn.textContent = 'Cancelar';
+      } else if (info.status === 'error') {
+        if (title) title.textContent = 'Error de conexión';
+        if (sub) sub.textContent = info.error || 'No se pudo abrir la sala P2P.';
+        if (toggleBtn) toggleBtn.textContent = 'Reintentar sala';
+      } else {
+        if (title) title.textContent = 'Sala apagada';
+        if (sub) sub.textContent = 'Los celulares igual pueden usar la guía offline con las fichas base.';
+        if (toggleBtn) toggleBtn.textContent = 'Iniciar sala en vivo';
+      }
+
+      if (countEl) countEl.textContent = `${count} ${count === 1 ? 'conectado' : 'conectados'}`;
+      if (listEl) {
+        listEl.replaceChildren();
+        if (!count) {
+          const empty = document.createElement('small');
+          empty.className = 'muted';
+          empty.textContent = info.status === 'open'
+            ? 'Esperando que los jugadores escaneen el QR o ingresen el código…'
+            : 'Aún no hay celulares conectados. Activa la sala para recibir jugadores en vivo.';
+          listEl.append(empty);
+        } else {
+          info.clients.forEach(cl => {
+            const chip = document.createElement('span');
+            chip.className = 'ms-client-chip';
+            chip.textContent = `✓ ${cl.characterName}`;
+            listEl.append(chip);
+          });
+        }
+      }
+
+      refreshJoinTargets(info.code);
+    };
+
+    mobileHost = new window.RondaSync.RondaLiveHost({
+      getPayload: () => window.RondaSync.buildPlayerPayload(state, campaign?.name || 'Las Grietas de Aethelgard'),
+      onStatusChange: renderHostStatus
+    });
+
+    renderHostStatus({ status: 'idle', code: mobileHost.code, error: '', clients: [] });
+
+    topBtn?.addEventListener('click', () => {
+      refreshJoinTargets(mobileHost.code);
+      openDialog(dialogs.mobileSync);
+    });
+
+    $('#msToggleHostBtn')?.addEventListener('click', () => {
+      if (mobileHost.isActive()) {
+        mobileHost.stop();
+        toast('Sala móvil detenida');
+      } else {
+        mobileHost.start(mobileHost.code);
+      }
+    });
+
+    $('#msCopyCodeBtn')?.addEventListener('click', () => {
+      copyToClipboard(mobileHost.code, `Código ${mobileHost.code} copiado`);
+    });
+
+    $('#msRegenCodeBtn')?.addEventListener('click', () => {
+      const next = mobileHost.regenerateCode();
+      refreshJoinTargets(next);
+      toast(`Nuevo código de sala: ${next}`);
+    });
+
+    baseInput?.addEventListener('input', () => {
+      window.RondaSync.savePlayerBaseUrl(baseInput.value);
+      refreshJoinTargets(mobileHost.code);
+    });
+
+    $('#msCopyLinkBtn')?.addEventListener('click', () => {
+      const url = refreshJoinTargets(mobileHost.code);
+      copyToClipboard(url, 'Enlace con código de sala copiado');
+    });
+
+    $('#msPreviewBtn')?.addEventListener('click', () => {
+      if (!mobileHost.isActive()) mobileHost.start(mobileHost.code);
+      const localPath = `player.html?room=${encodeURIComponent(mobileHost.code)}`;
+      if (typeof chrome !== 'undefined' && chrome.runtime?.id) {
+        window.open(chrome.runtime.getURL(localPath), '_blank', 'width=430,height=840');
+      } else {
+        window.open(localPath, '_blank', 'width=430,height=840');
+      }
+    });
+  }
+
+  initMobileSyncUI();
 
   renderAll();
   if (new URLSearchParams(location.search).get('view') === 'map') {

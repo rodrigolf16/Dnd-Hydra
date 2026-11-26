@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#10130f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Ronda — Guía Móvil de Jugador · D&amp;D 2024</title>
+  <link rel="manifest" href="player-manifest.webmanifest">
+  <link rel="icon" type="image/png" href="assets/icons/icon48.png">
+  <link rel="apple-touch-icon" href="assets/icons/icon128.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="player.css">
+</head>
+<body>
+  <!-- PANTALLA 1: SELECTOR DE PERSONAJE -->
+  <section class="picker-screen" id="pickerScreen" hidden>
+    <header class="picker-header">
+      <div class="picker-brand">
+        <span class="brand-mark">R</span>
+        <div>
+          <span class="kicker">D&amp;D 2024 · DADOS FÍSICOS</span>
+          <h1 id="pickerCampaignName">Las Grietas de Aethelgard</h1>
+        </div>
+      </div>
+      <button type="button" class="sync-pill" id="pickerSyncBtn" title="Conectar con la mesa del DM">
+        <i class="dot"></i><span>Offline</span>
+      </button>
+    </header>
+
+    <p class="picker-lead">
+      Elige tu personaje para ver tus <b>movimientos disponibles</b> y <b>qué dados físicos tirar</b> en tu turno. El mapa y el daño los lleva el DM.
+    </p>
+
+    <div class="picker-grid" id="pickerGrid"></div>
+
+    <footer class="picker-foot">
+      <small>Funciona sin internet. Si el DM abre una sala, escanea su QR o toca el botón superior para recibir tu turno y PG en vivo.</small>
+    </footer>
+  </section>
+
+  <!-- PANTALLA 2: GUÍA DEL JUGADOR -->
+  <div class="player-shell" id="playerShell" hidden>
+    <!-- HEADER COMPACTO -->
+    <header class="top-bar">
+      <button type="button" class="char-switcher" id="switchCharBtn" title="Cambiar personaje">
+        <div class="mini-avatar" id="topAvatarBox">
+          <img id="topAvatarImg" alt="" hidden>
+          <span id="topAvatarFallback">K</span>
+        </div>
+        <div class="char-id">
+          <b id="topCharName">Khael</b>
+          <small id="topCharSub">Explorador 5 · Nv. 5</small>
+        </div>
+        <span class="switch-caret">⇄</span>
+      </button>
+
+      <button type="button" class="sync-pill" id="liveSyncBtn" title="Estado de conexión con el DM">
+        <i class="dot"></i><span id="liveSyncLabel">Offline</span>
+      </button>
+    </header>
+
+    <!-- BANNER DE TURNO EN VIVO -->
+    <div class="turn-banner" id="turnBanner" hidden>
+      <div class="turn-banner-main">
+        <span class="turn-banner-badge" id="turnBannerBadge">RONDA 1</span>
+        <b id="turnBannerTitle">Turno de Khael</b>
+      </div>
+      <small id="turnBannerSub">Tu reacción está lista</small>
+    </div>
+
+    <!-- RESUMEN VITAL + RECURSOS DEL TURNO -->
+    <section class="vitals-panel">
+      <div class="vitals-row">
+        <div class="hp-pill">
+          <div class="hp-pill-top">
+            <span>PG</span>
+            <b id="pHpText">53 <small>/ 63</small></b>
+          </div>
+          <div class="hp-track"><div class="hp-fill" id="pHpBar" style="width: 84%"></div></div>
+        </div>
+        <div class="stat-chip"><span>CA</span><b id="pStatAc">17</b></div>
+        <div class="stat-chip"><span>VEL</span><b id="pStatSpeed">10,5 m</b></div>
+        <div class="stat-chip"><span>INIC</span><b id="pStatInit">+12</b></div>
+      </div>
+
+      <div class="status-pills" id="pConditionPills" hidden></div>
+
+      <div class="resources-bar">
+        <button type="button" class="res-chip" data-res="action" id="resAction">
+          <span>Acción</span><i class="res-mark">✓</i>
+        </button>
+        <button type="button" class="res-chip" data-res="bonus" id="resBonus">
+          <span>Adicional</span><i class="res-mark">✓</i>
+        </button>
+        <button type="button" class="res-chip" data-res="movement" id="resMovement">
+          <span id="resMoveLabel">10,5 m</span><i class="res-mark">✓</i>
+        </button>
+        <button type="button" class="res-chip" data-res="reaction" id="resReaction">
+          <span>Reacción</span><i class="res-mark">✓</i>
+        </button>
+        <button type="button" class="res-reset" id="resetLocalTurnBtn" title="Restaurar recursos para un nuevo turno">↻</button>
+      </div>
+    </section>
+
+    <!-- CONTENIDO PRINCIPAL POR PESTAÑAS -->
+    <main class="tab-content" id="tabContent">
+      <!-- TAB 1: TURNO Y DADOS FÍSICOS -->
+      <section class="tab-pane active" id="paneTurn" data-pane="turn">
+        <div class="guide-callout" id="turnGuideBox">
+          <div class="guide-callout-head">
+            <span class="kicker">QUÉ PUEDES HACER AHORA</span>
+            <span class="guide-tag" id="turnGuideBadge">Disponible</span>
+          </div>
+          <p id="turnGuideText"></p>
+        </div>
+
+        <!-- MODIFICADORES EN VIVO PARA CALCULAR DADOS FÍSICOS -->
+        <div class="mods-card">
+          <div class="mods-row">
+            <div class="seg-control" role="group" aria-label="Modo de tirada d20">
+              <button type="button" class="seg-btn active" data-roll-mode="normal">Normal</button>
+              <button type="button" class="seg-btn" data-roll-mode="advantage">Ventaja <small>2×d20↑</small></button>
+              <button type="button" class="seg-btn" data-roll-mode="disadvantage">Desvent. <small>2×d20↓</small></button>
+            </div>
+            <button type="button" class="crit-toggle" id="critToggleBtn">💥 Crítico ×2</button>
+          </div>
+          <div class="class-mods" id="classModsBar" hidden></div>
+        </div>
+
+        <!-- ATAQUES CON ARMA -->
+        <div class="block-head">
+          <h2>⚔ Atacar con arma</h2>
+          <span class="block-hint" id="attackBlockHint">1 acción</span>
+        </div>
+        <div class="card-stack" id="weaponCards"></div>
+
+        <!-- ACCIONES ADICIONALES -->
+        <div class="block-head">
+          <h2>⚡ Acción adicional</h2>
+          <span class="block-hint">1 por turno</span>
+        </div>
+        <div class="card-stack" id="bonusCards"></div>
+
+        <!-- REACCIONES -->
+        <div class="block-head">
+          <h2>🛡 Reacciones</h2>
+          <span class="block-hint">Fuera de tu turno</span>
+        </div>
+        <div class="card-stack" id="reactionCards"></div>
+
+        <!-- ACCIONES ESTÁNDAR -->
+        <details class="std-details">
+          <summary>
+            <span>📖 Acciones estándar de D&amp;D 2024 (Correr, Esquivar, Ayudar…)</span>
+            <i>▾</i>
+          </summary>
+          <div class="card-stack std-stack" id="standardCards"></div>
+        </details>
+      </section>
+
+      <!-- TAB 2: CONJUROS Y USOS LIMITADOS -->
+      <section class="tab-pane" id="paneSpells" data-pane="spells">
+        <div id="usesBlockWrap">
+          <div class="block-head">
+            <h2>✦ Usos limitados y espacios</h2>
+            <span class="block-hint" id="usesHint">Toca para llevar la cuenta</span>
+          </div>
+          <div class="uses-grid" id="playerUsesList"></div>
+        </div>
+
+        <div id="spellsBlockWrap">
+          <div class="spell-hero" id="spellHero">
+            <div>
+              <span>CD DE SALVACIÓN</span>
+              <b id="spellSaveDc">15</b>
+            </div>
+            <div>
+              <span>ATAQUE CONJURO</span>
+              <b id="spellAtkBonus">1×d20 + 7</b>
+            </div>
+            <div>
+              <span>PREPARADOS</span>
+              <b id="spellPreparedCount">6</b>
+            </div>
+          </div>
+
+          <div class="filter-chips" id="spellFilters">
+            <button type="button" class="filter-chip active" data-spell-filter="all">Todos</button>
+            <button type="button" class="filter-chip" data-spell-filter="0">Trucos</button>
+            <button type="button" class="filter-chip" data-spell-filter="1">Nv. 1</button>
+            <button type="button" class="filter-chip" data-spell-filter="2">Nv. 2+</button>
+            <button type="button" class="filter-chip" data-spell-filter="bonus">Adicional</button>
+            <button type="button" class="filter-chip" data-spell-filter="reaction">Reacción</button>
+          </div>
+
+          <div class="card-stack" id="spellCards"></div>
+        </div>
+
+        <div class="empty-card" id="noSpellsCard" hidden>
+          <b>Personaje marcial</b>
+          <p>Este personaje no tiene conjuros cargados. Usa la pestaña <b>⚔ Turno</b> para ver tus armas, maestrías y rasgos de combate.</p>
+        </div>
+      </section>
+
+      <!-- TAB 3: PRUEBAS, SALVACIONES Y HABILIDADES -->
+      <section class="tab-pane" id="paneChecks" data-pane="checks">
+        <div class="check-spotlight" id="checkSpotlight">
+          <div class="spotlight-top">
+            <span class="kicker" id="spotlightKicker">TIRA EN LA MESA</span>
+            <div class="mini-seg">
+              <button type="button" class="mini-seg-btn active" data-check-mode="normal">1×d20</button>
+              <button type="button" class="mini-seg-btn" data-check-mode="advantage">Vent.</button>
+              <button type="button" class="mini-seg-btn" data-check-mode="disadvantage">Desv.</button>
+            </div>
+          </div>
+          <div class="spotlight-body">
+            <b id="spotlightName">Percepción</b>
+            <div class="spotlight-dice" id="spotlightDice">1 × d20 + 7</div>
+          </div>
+          <small id="spotlightHint">Toca cualquier atributo, salvación o habilidad abajo para ver qué dado físico tirar.</small>
+        </div>
+
+        <div class="block-head">
+          <h2>Atributos</h2>
+          <span class="block-hint">Toca para ver tirada</span>
+        </div>
+        <div class="abilities-grid" id="abilitiesGrid"></div>
+
+        <div class="block-head">
+          <h2>Tiradas de salvación</h2>
+          <span class="block-hint">1 × d20 + bono</span>
+        </div>
+        <div class="saves-grid" id="savesGrid"></div>
+
+        <div class="block-head">
+          <h2>Habilidades</h2>
+          <input type="search" id="skillSearch" class="skill-search" placeholder="Filtrar (ej. Sigilo)…">
+        </div>
+        <div class="skills-list" id="skillsList"></div>
+      </section>
+
+      <!-- TAB 4: FICHA, RASGOS E INICIATIVA -->
+      <section class="tab-pane" id="paneSheet" data-pane="sheet">
+        <div id="liveInitSection" hidden>
+          <div class="block-head">
+            <h2>Orden de iniciativa (en vivo)</h2>
+            <span class="block-hint" id="liveInitRound">Ronda 1</span>
+          </div>
+          <div class="init-order-list" id="liveInitList"></div>
+        </div>
+
+        <div class="block-head">
+          <h2>Maestrías con armas</h2>
+          <span class="block-hint">D&amp;D 2024</span>
+        </div>
+        <div class="card-stack" id="masteriesList"></div>
+
+        <div class="block-head">
+          <h2>Rasgos y dotes</h2>
+          <span class="block-hint">Tu personaje</span>
+        </div>
+        <div class="card-stack" id="featuresList"></div>
+
+        <div class="block-head">
+          <h2>Equipo y perfil</h2>
+        </div>
+        <div class="info-card" id="sheetProfileCard"></div>
+      </section>
+    </main>
+
+    <!-- NAVEGACIÓN INFERIOR MÓVIL -->
+    <nav class="bottom-nav" aria-label="Navegación principal">
+      <button type="button" class="nav-tab active" data-tab="turn">
+        <span class="nav-ico">⚔</span>
+        <span>Turno</span>
+      </button>
+      <button type="button" class="nav-tab" data-tab="spells" id="spellsNavTab">
+        <span class="nav-ico">✧</span>
+        <span id="spellsNavLabel">Conjuros</span>
+      </button>
+      <button type="button" class="nav-tab" data-tab="checks">
+        <span class="nav-ico">🎲</span>
+        <span>Tiradas</span>
+      </button>
+      <button type="button" class="nav-tab" data-tab="sheet">
+        <span class="nav-ico">📜</span>
+        <span>Ficha</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- MODAL: CONEXIÓN EN VIVO CON EL DM -->
+  <dialog id="connectDialog" class="mobile-dialog">
+    <form method="dialog">
+      <button type="button" class="dialog-close" data-close-dialog aria-label="Cerrar">×</button>
+      <span class="kicker">MODO HÍBRIDO · EN VIVO CON EL DM</span>
+      <h2>Conectar a la mesa del DM</h2>
+      <p class="dialog-copy">
+        Tu guía funciona siempre <b>offline</b>. Si el DM inicia una sala en su extensión de Chrome, escribe el código o escanea su QR para recibir <b>turnos, PG y fichas de Nivel20 en vivo</b>.
+      </p>
+
+      <div class="sync-status-box" id="syncStatusBox">
+        <i class="dot"></i>
+        <div>
+          <b id="syncModalTitle">Modo Offline</b>
+          <small id="syncModalDetail">Usando fichas guardadas en tu celular.</small>
+        </div>
+      </div>
+
+      <label class="field-label">
+        Código de sala del DM
+        <input id="roomCodeInput" type="text" inputmode="text" autocapitalize="characters" autocomplete="off" placeholder="Ej. A7K9M2" maxlength="12">
+      </label>
+
+      <div class="dialog-actions">
+        <button type="button" class="btn-outline" id="disconnectRoomBtn" hidden>Volver a offline</button>
+        <button type="button" class="btn-primary" id="connectRoomBtn">Conectar en vivo <span>→</span></button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="playerToast" role="status" aria-live="polite"></div>
+
+  <script src="campaign-data.js"></script>
+  <script src="lib/peerjs.min.js"></script>
+  <script src="sync-bridge.js"></script>
+  <script src="player.js"></script>
+</body>
+</html>

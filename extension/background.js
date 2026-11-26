@@ -42,6 +42,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
+  if (message?.type === 'RONDA_OPEN_MOBILE_GUIDE_TAB') {
+    const targetUrl = chrome.runtime.getURL('player.html');
+    chrome.tabs.create({ url: targetUrl });
+    sendResponse({ ok: true });
+    return true;
+  }
+
   if (message?.type === 'RONDA_SYNC_FROM_NIVEL20') {
     syncActiveNivel20Tab(message.tabId)
       .then(result => sendResponse(result))

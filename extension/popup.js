@@ -35,6 +35,10 @@ document.getElementById('openPlayerMapPopupBtn').addEventListener('click', () =>
   chrome.runtime.sendMessage({ type: 'RONDA_OPEN_PLAYER_MAP_TAB' }, () => window.close());
 });
 
+document.getElementById('openMobileGuidePopupBtn').addEventListener('click', () => {
+  chrome.runtime.sendMessage({ type: 'RONDA_OPEN_MOBILE_GUIDE_TAB' }, () => window.close());
+});
+
 document.getElementById('syncBtn').addEventListener('click', async () => {
   setStatus('Leyendo ficha abierta en Nivel20…');
   const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
