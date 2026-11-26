@@ -1,0 +1,79 @@
+name: CI/CD — Ronda DM & Guía Móvil
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    name: Validar extensión y PWA
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Ejecutar validaciones (JS, MV3 CSP, Sync, Mapa 2D)
+        run: node scripts/validate.mjs
+
+  release-extension:
+    name: Empaquetar extensión y publicar Release
+    needs: validate
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Empaquetar Ronda-Extension-Chrome.zip limpio
+        run: |
+          zip -r Ronda-Extension-Chrome.zip \
+            manifest.json \
+            index.html \
+            styles.css \
+            app.js \
+            campaign-data.js \
+            map-engine.js \
+            sync-bridge.js \
+            player-map.html \
+            player-map.js \
+            player.html \
+            player.css \
+            player.js \
+            player-manifest.webmanifest \
+            player-sw.js \
+            assets \
+            extension \
+            lib
+
+      - name: Subir artefacto de compilación
+        uses: actions/upload-artifact@v4
+        with:
+          name: Ronda-Extension-Chrome
+          path: Ronda-Extension-Chrome.zip
+
+      - name: Actualizar Release "latest" en GitHub
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          SHORT_SHA="${GITHUB_SHA::7}"
+          NOTES="Compilación automática desde \`main\` (\`${SHORT_SHA}\`).\n\n- **Guía Móvil (PWA):** https://rodrigolf16.github.io/Dnd-Hydra/player.html\n- **Sin volver a bajar ZIP:** si clonaste el repo con \`git clone\`, ejecuta \`actualizar.bat\` (Windows) o \`./actualizar.sh\` (Mac/Linux) y pulsa **Recargar** en \`chrome://extensions\`."
+          if gh release view latest >/dev/null 2>&1; then
+            gh release upload latest Ronda-Extension-Chrome.zip --clobber
+            gh release edit latest --title "Ronda DM (Última versión · ${SHORT_SHA})" --notes "$(printf '%b' "$NOTES")"
+          else
+            gh release create latest Ronda-Extension-Chrome.zip \
+              --title "Ronda DM (Última versión · ${SHORT_SHA})" \
+              --notes "$(printf '%b' "$NOTES")" \
+              --latest
+          fi

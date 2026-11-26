@@ -4,13 +4,23 @@ Extensión de **Chrome / Edge (Manifest V3)** y aplicación web local para el **
 
 ---
 
-## Cómo instalar la extensión en Chrome o Edge (en esta PC o en otra)
+## Cómo instalar la extensión sin volver a bajar ZIP (recomendado)
 
-1. Abre **Chrome** y entra a `chrome://extensions` (en Edge: `edge://extensions`).
-2. Activa el interruptor **Modo de desarrollador** (arriba a la derecha).
-3. Haz clic en **Cargar descomprimida** (*Load unpacked*).
-4. Selecciona la carpeta del proyecto (o la carpeta descomprimida de `Ronda-Extension-Chrome.zip` en otra PC).
+1. Clona el repositorio **una sola vez** en tu PC:
+   ```bash
+   git clone https://github.com/rodrigolf16/Dnd-Hydra.git
+   ```
+2. Abre **Chrome** y entra a `chrome://extensions` (en Edge: `edge://extensions`).
+3. Activa el interruptor **Modo de desarrollador** (arriba a la derecha).
+4. Haz clic en **Cargar descomprimida** (*Load unpacked*) y elige la carpeta `Dnd-Hydra` que acabas de clonar.
 5. Fija el icono **R (Ronda DM)** en la barra de extensiones de Chrome.
+6. **Para actualizar en el futuro (sin bajar ningún ZIP):** haz doble clic en **`actualizar.bat`** (Windows) o ejecuta `./actualizar.sh` (Mac/Linux), y toca **⟳ Recargar** en `chrome://extensions`.
+
+### CI/CD automático (GitHub Actions + GitHub Pages)
+Cada `push` a `main` ejecuta `.github/workflows/ci-cd.yml`:
+- Valida sintaxis JS, cumplimiento CSP de Manifest V3, privacidad de sincronización móvil y motor del mapa (`node scripts/validate.mjs`).
+- Actualiza automáticamente la **Guía Móvil (PWA)** en GitHub Pages (`https://rodrigolf16.github.io/Dnd-Hydra/player.html`).
+- Genera y publica un paquete limpio `Ronda-Extension-Chrome.zip` en la Release `latest` de GitHub.
 
 ### Cómo usarla durante la partida
 - **Panel Lateral (al lado de Nivel20):** haz clic en el icono de Ronda → **◫ Abrir Panel Lateral** para tener el gestor de turnos pegado al costado de tu pestaña de Nivel20.
