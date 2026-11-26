@@ -1,0 +1,168 @@
+.map-roster-subrow select,
+.map-roster-subrow input {
+  height: 22px;
+  background: #1b2118;
+  border: 1px solid #394233;
+  color: #d7e1c4;
+  border-radius: 4px;
+  font: 10px var(--mono);
+  padding: 0 4px;
+}
+
+.map-roster-subrow input {
+  width: 44px;
+  text-align: center;
+}
+
+/* =========================================================================
+   DEDICATED PLAYER MAP VIEW (FOG OF WAR SCREEN)
+   ========================================================================= */
+.player-map-body {
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: #0a0c09;
+}
+
+.player-map-hud {
+  height: 54px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 16px;
+  background: #121610;
+  border-bottom: 1px solid #262d22;
+}
+
+.player-hud-left,
+.player-hud-right {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+
+.small-mark {
+  width: 30px;
+  height: 30px;
+  font-size: 18px;
+}
+
+.player-hud-left b {
+  display: block;
+  font: 600 15px var(--serif);
+  color: #edf0e4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.player-hud-left small {
+  display: block;
+  font-size: 11px;
+  color: #a4b293;
+}
+
+.light-pill {
+  font: 11px var(--mono);
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #1b2118;
+  border: 1px solid #384330;
+  color: #dce6c6;
+  white-space: nowrap;
+}
+
+.player-map-viewport {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  background: #070907;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.player-map-viewport.panning {
+  cursor: grabbing;
+}
+
+.fog-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 20;
+}
+
+.player-readonly-token {
+  cursor: default !important;
+  pointer-events: none;
+}
+
+.player-empty-msg {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  max-width: 420px;
+  padding: 20px 24px;
+  border-radius: 11px;
+  background: rgba(18, 22, 16, 0.92);
+  border: 1px solid #384331;
+  z-index: 30;
+}
+
+.player-empty-msg b {
+  display: block;
+  font: 600 18px var(--serif);
+  color: #e6ecd9;
+  margin-bottom: 6px;
+}
+
+.player-empty-msg span {
+  font-size: 12px;
+  color: #9ea695;
+  line-height: 1.5;
+}
+
+@media (max-width: 960px) {
+  .map-workspace {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* RESPONSIVE */
+@media (max-width: 1140px) {
+  .app-shell { grid-template-columns: 196px 1fr; }
+  .battle-layout { grid-template-columns: minmax(420px, 1fr) 285px; gap: 16px; }
+}
+
+@media (max-width: 900px) {
+  .app-shell { grid-template-columns: 64px 1fr; }
+  .sidebar { padding: 18px 8px; }
+  .brand { margin: 0 auto 36px; }
+  .brand > span:last-child,
+  .nav-label,
+  .nav-text,
+  .nav-item kbd,
+  .campaign > div:nth-child(2),
+  .campaign > span,
+  .user-row > span,
+  .user-row button { display: none; }
+  .nav-item { justify-content: center; padding: 0; position: relative; }
+  .nav-item > span:first-child { font-size: 18px; }
+  .nav-dot { position: absolute; top: 8px; right: 8px; margin: 0; }
+  .campaign { justify-content: center; padding: 10px 0; }
+  .user-row { justify-content: center; }
+  .battle-layout { grid-template-columns: 1fr; }
+  .right-column { display: grid; grid-template-columns: 1fr 1fr; }
+  .manual-callout { align-self: start; }
+}
+

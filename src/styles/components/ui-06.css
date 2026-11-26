@@ -1,0 +1,172 @@
+.target-row:hover {
+  background: #1d221b;
+}
+
+.target-row.selected {
+  background: #21271e;
+  border-color: #46533c;
+}
+
+.target-row.defeated {
+  opacity: 0.55;
+}
+
+.target-token {
+  width: 34px;
+  height: 34px;
+  border-radius: 7px;
+  display: grid;
+  place-items: center;
+  font: 14px var(--serif);
+  background: #392a22;
+  color: #e2a687;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.target-token img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.target-token.ally {
+  background: #28333b;
+  color: #a4bec7;
+}
+
+.target-name {
+  flex: 1;
+  min-width: 0;
+}
+
+.target-name b {
+  font-size: 12px;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.target-name small,
+.target-hp small {
+  font-size: 10px;
+  color: #8c9485;
+  display: block;
+  margin-top: 2px;
+}
+
+.target-hp {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.target-hp i {
+  font: 11px var(--mono);
+  font-style: normal;
+  color: #a7c77a;
+  white-space: nowrap;
+}
+
+.target-hp.marked i,
+.target-hp.marked small {
+  color: #e1cc81;
+}
+
+.target-hp-bar {
+  height: 5px;
+  background: #272e23;
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 4px 6px 2px 48px;
+}
+
+.target-hp-bar i {
+  display: block;
+  height: 100%;
+  background: #a5c475;
+  border-radius: 999px;
+  transition: width 0.25s ease;
+}
+
+.target-hp-bar i.hp-mid {
+  background: var(--gold);
+}
+
+.target-hp-bar i.hp-low {
+  background: var(--red);
+}
+
+.target-subcontrols {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 5px 6px 2px 48px;
+  flex-wrap: wrap;
+}
+
+.target-hp-mini {
+  display: flex;
+  gap: 4px;
+}
+
+.target-hp-mini button {
+  height: 22px;
+  padding: 0 6px;
+  border: 1px solid #353d30;
+  background: #1f251c;
+  border-radius: 4px;
+  font: 10px var(--mono);
+  color: #cbd5b8;
+}
+
+.target-hp-mini button:hover {
+  border-color: #6d7f55;
+}
+
+.target-hp-mini button.remove-enemy-btn {
+  color: #d79687;
+  border-color: #4b322c;
+}
+
+.target-hp-mini button.remove-enemy-btn:hover {
+  background: #34211c;
+}
+
+.enemy-defeated {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #939b8a;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.enemy-defeated input {
+  accent-color: var(--green);
+}
+
+.empty-targets {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #8b9384;
+  padding: 6px 2px;
+}
+
+.add-target,
+.manage-link {
+  border: 0;
+  background: transparent;
+  color: #b7c698;
+  font-size: 12px;
+  text-align: left;
+  padding: 8px 4px 2px;
+}
+
+.add-target:hover,
+.manage-link:hover {
+  color: #dce9be;
+}
+

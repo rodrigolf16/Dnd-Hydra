@@ -1,0 +1,173 @@
+.manage-link {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+}
+
+/* LIMITED USES */
+.rest-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+  margin-bottom: 10px;
+}
+
+.rest-buttons button {
+  background: #20261d;
+  border: 1px solid #363f30;
+  border-radius: 6px;
+  color: #c8d5aa;
+  font-size: 11px;
+  padding: 8px 6px;
+}
+
+.rest-buttons button:hover {
+  border-color: #71835d;
+  background: #283123;
+}
+
+.uses-empty {
+  color: #8d9585;
+  font-size: 11px;
+  line-height: 1.5;
+  margin: 6px 0;
+}
+
+.limited-use-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 7px;
+  border-top: 1px solid #292f27;
+  padding: 9px 0;
+}
+
+.limited-use-row > span:first-child {
+  min-width: 0;
+}
+
+.limited-use-row > span:first-child b {
+  display: block;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.limited-use-row > span:first-child small {
+  display: block;
+  color: #8b9383;
+  font-size: 10px;
+  margin-top: 2px;
+}
+
+.use-controls {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.use-controls button,
+.remove-use {
+  width: 24px;
+  height: 24px;
+  border: 1px solid #394233;
+  border-radius: 5px;
+  background: #22291e;
+  color: #c6d59f;
+}
+
+.use-controls button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.use-count {
+  font: 11px var(--mono);
+  min-width: 32px;
+  text-align: center;
+  color: #d4ddc4;
+}
+
+.remove-use {
+  border: 0;
+  background: transparent;
+  color: #b48978;
+  font-size: 16px;
+  padding: 0;
+}
+
+/* PHYSICAL DICE COUNTER & RESULT CARD */
+.mini-link {
+  border: 0;
+  background: none;
+  color: var(--green);
+  font-size: 11px;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.dice-helper-text {
+  font-size: 11px;
+  color: #939b8b;
+  margin: 0 0 9px;
+  line-height: 1.4;
+}
+
+.dice-counter-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.die-pick {
+  position: relative;
+  height: 38px;
+  border: 1px solid #384032;
+  background: #20251e;
+  border-radius: 7px;
+  color: #d8e2c5;
+  font: 600 12px var(--mono);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.die-pick:hover {
+  background: #2d3826;
+  border-color: #6b7d53;
+}
+
+.die-pick.has-qty {
+  border-color: #849c5e;
+  background: #27331f;
+}
+
+.die-badge {
+  min-width: 22px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #141812;
+  border: 1px solid #353e2f;
+  color: #9ba58f;
+  font: 600 11px var(--mono);
+  display: grid;
+  place-items: center;
+}
+
+.die-pick.has-qty .die-badge {
+  background: var(--green);
+  border-color: var(--green);
+  color: var(--green-dark);
+}
+
+.physical-pool-box {
+  margin: 10px 0;
+  padding: 11px 12px;
+  border-radius: 8px;
+  border: 1px solid #48563c;
+  background: linear-gradient(135deg, #1d2419, #131712);
+}
+

@@ -1,0 +1,167 @@
+.ms-code-line b {
+  font-family: var(--mono);
+  font-size: 22px;
+  letter-spacing: 0.16em;
+  color: var(--green);
+  flex: 1;
+}
+
+.ms-link-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.ms-link-actions button {
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ms-clients-box {
+  padding: 11px 13px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #141812;
+}
+
+.ms-clients-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.ms-clients-head b {
+  color: var(--green);
+  font-family: var(--mono);
+}
+
+.ms-clients-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ms-client-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(186, 210, 139, 0.45);
+  background: rgba(186, 210, 139, 0.12);
+  color: #dce9be;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+@media (max-width: 620px) {
+  .ms-grid {
+    grid-template-columns: 1fr;
+  }
+  .ms-qr-card {
+    margin: 0 auto;
+  }
+}
+
+/* =========================================================================
+   EDIT DIALOG DELETE FOOTER & PLAYER MAP FULLSCREEN + NEXT TURNS COLUMN
+   ========================================================================= */
+.edit-dialog-footer {
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.dialog-buttons-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.player-map-workspace {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  overflow: hidden;
+  background: #070907;
+}
+
+.player-map-hud .active-toggle {
+  border-color: rgba(186, 210, 139, 0.55);
+  background: rgba(186, 210, 139, 0.14);
+  color: var(--green);
+}
+
+.fs-hover-zone {
+  display: none;
+}
+
+.player-map-body.is-fullscreen .fs-hover-zone {
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 18px;
+  z-index: 60;
+}
+
+.player-map-body.is-fullscreen .player-map-hud {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 70;
+  transform: translateY(-105%);
+  opacity: 0;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  background: rgba(16, 20, 14, 0.94);
+  backdrop-filter: blur(8px);
+}
+
+.player-map-body.is-fullscreen.hud-reveal .player-map-hud,
+.player-map-body.is-fullscreen .player-map-hud:hover {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.player-turns-aside {
+  width: 292px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: #111510;
+  border-left: 1px solid #283024;
+  z-index: 25;
+}
+
+.player-turns-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 14px 14px 12px;
+  border-bottom: 1px solid #242b20;
+  background: #151a13;
+}
+
+.player-turns-kicker {
+  display: block;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #8f9887;
+}
+
+.player-turns-head h2 {
+  margin: 2px 0 0;
+  font: 600 17px var(--serif);
+  color: #edf0e4;
+}
+

@@ -1,0 +1,170 @@
+.animated-die {
+  --shape: polygon(15% 5%, 85% 5%, 100% 50%, 85% 95%, 15% 95%, 0 50%);
+  position: relative;
+  width: 66px;
+  height: 66px;
+  display: grid;
+  place-items: center;
+  isolation: isolate;
+  transform-style: preserve-3d;
+  filter: drop-shadow(0 9px 7px #0009);
+  animation: poly-die-roll 1.05s cubic-bezier(0.18, 0.76, 0.28, 1.12) var(--delay, 0ms) both;
+  will-change: transform;
+  margin-bottom: 18px;
+}
+
+.die-face {
+  position: absolute;
+  inset: 0;
+  clip-path: var(--shape);
+  background: linear-gradient(145deg, #d6e5b3, #718a55 52%, #39452f);
+  box-shadow: inset 0 0 0 2px #e4efc3;
+  z-index: 0;
+}
+
+.die-label,
+.die-value {
+  position: relative;
+  z-index: 1;
+  font: 600 18px var(--mono);
+  color: #172015;
+  text-shadow: 0 1px 0 #e9f2ce;
+}
+
+.die-value {
+  display: none;
+}
+
+.animated-die.revealed .die-label {
+  display: none;
+}
+
+.animated-die.revealed .die-value {
+  display: block;
+  animation: die-result 0.25s ease-out both;
+}
+
+.die-d4 { --shape: polygon(50% 2%, 98% 96%, 2% 96%); width: 68px; height: 66px; }
+.die-d6 { --shape: polygon(13% 4%, 87% 4%, 98% 17%, 98% 83%, 87% 96%, 13% 96%, 2% 83%, 2% 17%); }
+.die-d8 { --shape: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); }
+.die-d10 { --shape: polygon(50% 0, 96% 35%, 78% 100%, 22% 100%, 4% 35%); }
+.die-d12 { --shape: polygon(25% 2%, 75% 2%, 98% 30%, 90% 78%, 65% 98%, 35% 98%, 10% 78%, 2% 30%); }
+.die-d20 { --shape: polygon(25% 2%, 75% 2%, 98% 35%, 85% 88%, 50% 100%, 15% 88%, 2% 35%); }
+
+.animated-die.revealed .die-face {
+  background: linear-gradient(145deg, #e6f0cb, #c4d99b);
+}
+
+.animated-die.crit-die.revealed .die-face {
+  background: linear-gradient(145deg, #fff1b8, #d8b556);
+}
+
+.animated-die.fumble-die.revealed .die-face {
+  background: linear-gradient(145deg, #f1bfb4, #c56a5a);
+}
+
+.die-owner {
+  position: absolute;
+  top: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 98px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #c8d3b0;
+  font: 10px var(--sans);
+  text-align: center;
+}
+
+.dice-popup-card p {
+  min-height: 24px;
+  color: #c8d5ae;
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 0 0 14px;
+}
+
+.dice-popup-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+@keyframes poly-die-roll {
+  0% { transform: translate3d(0, -100px, 0) rotateX(-260deg) rotateY(170deg) rotateZ(-160deg) scale(0.45); opacity: 0; }
+  38% { transform: translate3d(-4px, 14px, 35px) rotateX(420deg) rotateY(310deg) rotateZ(190deg) scale(1.08); opacity: 1; }
+  57% { transform: translate3d(3px, -12px, 12px) rotateX(560deg) rotateY(460deg) rotateZ(270deg) scale(0.96); }
+  76% { transform: translate3d(-2px, 5px, 4px) rotateX(650deg) rotateY(590deg) rotateZ(340deg) scale(1.02); }
+  100% { transform: translate3d(0, 0, 0) rotateX(0deg) rotateY(0deg) rotateZ(var(--spin-z, 0deg)) scale(1); opacity: 1; }
+}
+
+@keyframes die-result {
+  from { transform: scale(0.35) rotate(-18deg); opacity: 0.25; }
+  to { transform: scale(1) rotate(0); opacity: 1; }
+}
+
+/* =========================================================================
+   2D TACTICAL BATTLE MAP
+   ========================================================================= */
+.map-view {
+  display: grid;
+  gap: 14px;
+}
+
+.map-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 14px;
+  flex-wrap: wrap;
+  padding: 11px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+}
+
+.map-toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.map-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #c5cdb7;
+  padding: 6px 9px;
+  border-radius: 6px;
+  background: #141812;
+  border: 1px solid #2e3629;
+  cursor: pointer;
+  user-select: none;
+}
+
+.map-check input {
+  accent-color: var(--green);
+  margin: 0;
+}
+
+.map-slider-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  color: #aeb7a0;
+  padding: 4px 9px;
+  border-radius: 6px;
+  background: #141812;
+  border: 1px solid #2e3629;
+}
+
+.map-slider-label input[type='range'] {
+  width: 74px;
+  accent-color: var(--green);
+}
+

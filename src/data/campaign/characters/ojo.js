@@ -1,0 +1,102 @@
+export const OJO = {
+  id: 'ojo',
+  name: 'Ojo de Bife_',
+  avatar: 'assets/portraits/ojo.svg',
+  owner: 'OjodeBife',
+  species: 'Alto elfo',
+  level: 5,
+  className: 'Mago 5 · Cronoturgo',
+  hp: 27,
+  maxHp: 36,
+  ac: 13,
+  initiative: 6,
+  speed: 9,
+  perception: 4,
+  stats: {
+    Fue: '9 (-1)',
+    Des: '16 (+3)',
+    Con: '14 (+2)',
+    Int: '17 (+3)',
+    Sab: '13 (+1)',
+    Car: '8 (-1)'
+  },
+  saves: { Fue: -1, Des: 3, Con: 2, Int: 6, Sab: 4, Car: -1 },
+  skills: {
+    Acrobacias: 3,
+    Atletismo: -1,
+    'Conocimiento arcano': 6,
+    Engaño: -1,
+    Historia: 6,
+    Interpretación: -1,
+    Intimidación: -1,
+    Investigación: 9,
+    'Juego de manos': 3,
+    Medicina: 1,
+    Naturaleza: 3,
+    Percepción: 4,
+    Perspicacia: 4,
+    Persuasión: -1,
+    Religión: 3,
+    Sigilo: 3,
+    Supervivencia: 1,
+    'Trato con animales': 1
+  },
+  masteries: [],
+  feats: ['Iniciado en la magia'],
+  features: [
+    'Alto elfo',
+    'Académico',
+    'Adepto en rituales',
+    'Ampliar y sustituir un libro de conjuros',
+    'Lanzamiento de conjuros',
+    'Mejora de característica',
+    'Memorizar conjuro',
+    'Recuperación arcana',
+    'Reemplazar el libro de conjuros',
+    'Cronoturgo',
+    'Cambio crónico',
+    'Conciencia temporal',
+    'Iniciado en la magia'
+  ],
+  spells: {
+    saveDc: 14,
+    attack: 6,
+    prepared: 9,
+    level1Slots: 4,
+    level2Slots: 3,
+    level3Slots: 2,
+    names: [
+      'Descarga de fuego',
+      'Rayo de escarcha',
+      'Ilusión menor',
+      'Mano de mago',
+      'Prestidigitación',
+      'Armadura de mago',
+      'Detectar magia',
+      'Dormir',
+      'Encontrar familiar',
+      'Escudo',
+      'Proyectil mágico',
+      'Hacer Añicos'
+    ],
+    castingTimes: {
+      'Encontrar familiar': '1 hora · ritual'
+    }
+  },
+  weapons: [
+    { name: 'Daga', attack: 6, damage: '1d4+3', type: 'perforante', tags: ['ligera', 'sutil', 'arrojadiza'] },
+    { name: 'Ballesta ligera', attack: 6, damage: '1d8+3', type: 'perforante', tags: ['distancia', 'recarga'], range: true }
+  ],
+  equipment: ['Daga', 'Ballesta ligera', 'Reloj de arena de arena roja (foco arcano)', 'Libro de conjuros'],
+  companion: 'Gato (familiar)',
+  languages: ['Élfico', 'Común', 'Dracónico', 'Celestial'],
+  proficiencies: ['Armas sencillas', 'Conocimiento arcano', 'Historia'],
+  background: 'Neutral · Trasfondo de sabio',
+  details: [
+    'Alineamiento: Neutral',
+    'Edad: 350',
+    'Apariencia: túnicas de sabio, barba larga y desaliñada; usa un reloj de arena de arena roja como foco mágico y lo acompaña un gato negro.',
+    'Historia: mago elfo de cronurgia; estudia el tiempo como una estructura que puede rediseñarse. Su obsesión por la precisión dio origen a su apodo.',
+    'Trasfondo: Sabio; se formó entre bibliotecas, palacetes y monasterios.'
+  ]
+};

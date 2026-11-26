@@ -1,0 +1,173 @@
+.init-row.active {
+  border-color: var(--green);
+  background: rgba(186, 210, 139, 0.14);
+}
+
+.init-row.defeated {
+  opacity: 0.48;
+  text-decoration: line-through;
+}
+
+.init-row-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.init-num {
+  font-family: var(--mono);
+  font-size: 12px;
+  min-width: 26px;
+  text-align: center;
+  padding: 2px 5px;
+  border-radius: 6px;
+  background: #121611;
+  color: var(--gold);
+}
+
+.info-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 13.5px;
+}
+
+.info-card h3 {
+  margin: 0 0 4px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.info-card p,
+.info-card ul {
+  margin: 0;
+  color: #dce1d3;
+}
+
+.info-card ul {
+  padding-left: 18px;
+}
+
+/* =========================================================================
+   BOTTOM NAVIGATION BAR
+   ========================================================================= */
+.bottom-nav {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 0;
+  width: 100%;
+  max-width: 580px;
+  z-index: 40;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+  background: rgba(18, 22, 16, 0.96);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--border-strong);
+}
+
+.nav-tab {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 6px 4px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.nav-tab .nav-ico {
+  font-size: 18px;
+  line-height: 1.1;
+}
+
+.nav-tab.active {
+  color: var(--green);
+  background: rgba(186, 210, 139, 0.12);
+}
+
+/* =========================================================================
+   CONNECT MODAL & TOAST
+   ========================================================================= */
+.mobile-dialog {
+  width: min(92vw, 420px);
+  border: 1px solid var(--border-strong);
+  border-radius: 16px;
+  background: #171c15;
+  color: var(--text);
+  padding: 20px 18px;
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.65);
+}
+
+.mobile-dialog::backdrop {
+  background: rgba(6, 8, 6, 0.72);
+  backdrop-filter: blur(4px);
+}
+
+.mobile-dialog h2 {
+  margin: 4px 0 8px;
+  font-family: var(--serif);
+  font-size: 20px;
+}
+
+.dialog-copy {
+  margin: 0 0 14px;
+  font-size: 13.5px;
+  color: var(--muted);
+}
+
+.dialog-copy b {
+  color: var(--text);
+}
+
+.dialog-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--panel2);
+  font-size: 18px;
+  line-height: 1;
+}
+
+.sync-status-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 11px;
+  border: 1px solid var(--border);
+  background: #121611;
+  margin-bottom: 14px;
+}
+
+.sync-status-box b {
+  display: block;
+  font-size: 13.5px;
+}
+
+.sync-status-box small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.field-label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+}
+

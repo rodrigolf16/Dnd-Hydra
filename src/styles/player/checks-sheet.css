@@ -1,0 +1,175 @@
+/* =========================================================================
+   TAB 2: SPELLS & LIMITED USES
+   ========================================================================= */
+.uses-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.use-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+}
+
+.use-info b {
+  display: block;
+  font-size: 14px;
+}
+
+.use-info small {
+  color: var(--muted);
+  font-size: 11.5px;
+}
+
+.use-stepper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.use-stepper button {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border-strong);
+  background: var(--panel2);
+  font-size: 17px;
+  display: grid;
+  place-items: center;
+}
+
+.use-stepper b {
+  font-family: var(--mono);
+  font-size: 14px;
+  min-width: 38px;
+  text-align: center;
+  color: var(--green);
+}
+
+.use-stepper b.empty {
+  color: var(--red);
+}
+
+.spell-hero {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.spell-hero > div {
+  padding: 10px 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(144, 188, 200, 0.35);
+  background: rgba(144, 188, 200, 0.08);
+  text-align: center;
+}
+
+.spell-hero span {
+  display: block;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--blue);
+}
+
+.spell-hero b {
+  display: block;
+  margin-top: 3px;
+  font-family: var(--mono);
+  font-size: 15px;
+}
+
+.filter-chips {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+}
+
+.filter-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.filter-chip {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.filter-chip.active {
+  border-color: var(--blue);
+  background: rgba(144, 188, 200, 0.16);
+  color: #d6eef5;
+}
+
+.spell-card {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.spell-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.spell-card-head b {
+  font-size: 15px;
+}
+
+.spell-card p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.empty-card {
+  padding: 20px 16px;
+  border-radius: 14px;
+  border: 1px dashed var(--border-strong);
+  background: var(--panel);
+  text-align: center;
+}
+
+.empty-card p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 13.5px;
+}
+
+/* =========================================================================
+   TAB 3: CHECKS, SAVES & SKILLS
+   ========================================================================= */
+.check-spotlight {
+  padding: 13px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(186, 210, 139, 0.45);
+  background: linear-gradient(135deg, rgba(186, 210, 139, 0.13), var(--panel));
+  position: sticky;
+  top: calc(59px + env(safe-area-inset-top));
+  z-index: 10;
+}
+
+.spotlight-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+

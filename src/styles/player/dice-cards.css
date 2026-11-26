@@ -1,0 +1,175 @@
+.seg-control {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  padding: 3px;
+  border-radius: 10px;
+  background: #111510;
+  border: 1px solid var(--border);
+}
+
+.seg-btn {
+  min-height: 34px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px;
+  line-height: 1.15;
+}
+
+.seg-btn small {
+  display: block;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  opacity: 0.85;
+}
+
+.seg-btn.active {
+  background: var(--panel3);
+  color: var(--text);
+  box-shadow: inset 0 0 0 1px var(--border-strong);
+}
+
+.seg-btn.active[data-roll-mode="advantage"] {
+  background: rgba(186, 210, 139, 0.18);
+  color: var(--green);
+  box-shadow: inset 0 0 0 1px rgba(186, 210, 139, 0.45);
+}
+
+.seg-btn.active[data-roll-mode="disadvantage"] {
+  background: rgba(226, 141, 126, 0.16);
+  color: var(--red);
+  box-shadow: inset 0 0 0 1px rgba(226, 141, 126, 0.45);
+}
+
+.crit-toggle {
+  min-height: 40px;
+  padding: 0 11px;
+  border-radius: 10px;
+  border: 1px solid var(--border-strong);
+  background: var(--panel2);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.crit-toggle.active {
+  border-color: rgba(226, 141, 126, 0.75);
+  background: rgba(226, 141, 126, 0.2);
+  color: #ffc2b7;
+}
+
+.class-mods {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.mod-pill {
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  background: var(--panel2);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.mod-pill.active {
+  border-color: rgba(217, 190, 123, 0.7);
+  background: rgba(217, 190, 123, 0.18);
+  color: #f3de9f;
+}
+
+/* =========================================================================
+   WEAPON & ACTION CARDS WITH PHYSICAL DICE TRAY
+   ========================================================================= */
+.weapon-card,
+.action-item,
+.spell-card,
+.info-card {
+  padding: 13px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+}
+
+.weapon-card.highlight {
+  border-color: rgba(186, 210, 139, 0.42);
+}
+
+.weapon-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.weapon-head b {
+  display: block;
+  font-size: 16px;
+}
+
+.weapon-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 4px;
+}
+
+.mini-tag {
+  font-size: 10.5px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: #141812;
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+
+.mini-tag.mastery {
+  border-color: rgba(217, 190, 123, 0.45);
+  color: var(--gold);
+  background: rgba(217, 190, 123, 0.1);
+}
+
+.mini-tag.blue {
+  border-color: rgba(144, 188, 200, 0.45);
+  color: var(--blue);
+  background: rgba(144, 188, 200, 0.1);
+}
+
+.mini-tag.green {
+  border-color: rgba(186, 210, 139, 0.45);
+  color: var(--green);
+  background: rgba(186, 210, 139, 0.1);
+}
+
+.dice-steps {
+  display: grid;
+  grid-template-columns: 1fr 1.25fr;
+  gap: 8px;
+}
+
+.dice-box {
+  padding: 10px;
+  border-radius: 11px;
+  border: 1px solid var(--border-strong);
+  background: #121611;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.dice-box.atk {
+  border-color: rgba(186, 210, 139, 0.35);
+}
+
+.dice-box.dmg {
+  border-color: rgba(217, 190, 123, 0.38);
+}

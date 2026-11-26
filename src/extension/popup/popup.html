@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Ronda DM</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="head">
+    <span class="mark">R</span>
+    <div>
+      <h1>Ronda — Panel DM</h1>
+      <span class="sub">D&amp;D 2024 · Dados físicos</span>
+    </div>
+  </div>
+
+  <div class="stack">
+    <button type="button" class="primary" id="openSidePanel">◫ Abrir Panel Lateral (al lado de Nivel20)</button>
+    <button type="button" class="secondary" id="openFullTab">↗ Panel DM Completo (Pestaña)</button>
+    <button type="button" class="secondary" id="openDmMapPopupBtn">🗺 Mapa DM Completo (Pestaña aparte)</button>
+    <button type="button" class="secondary" id="openPlayerMapPopupBtn">🖥 Mapa Jugadores · Niebla de Guerra</button>
+    <button type="button" class="secondary" id="openMobileGuidePopupBtn">📱 Vista Guía Móvil (Jugadores)</button>
+  </div>
+
+  <div class="sync-box">
+    <small id="tabHint">Abre la <b>página de tu campaña</b> (trae todos los retratos a la vez) o la <b>hoja de un personaje</b> en <b>nivel20.com</b> y pulsa sincronizar:</small>
+    <button type="button" class="secondary" id="syncBtn">⟳ Sincronizar retratos / ficha de Nivel20</button>
+    <div class="status" id="statusMsg"></div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

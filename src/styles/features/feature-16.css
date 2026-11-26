@@ -1,0 +1,91 @@
+.scale-bar-line {
+  display: inline-block;
+  height: 7px;
+  min-width: 44px;
+  border-left: 2px solid var(--green);
+  border-right: 2px solid var(--green);
+  border-bottom: 2px solid var(--green);
+  transition: width 0.12s ease;
+}
+
+.scale-bar-label {
+  font: 600 12.5px var(--mono);
+  color: var(--green);
+  white-space: nowrap;
+}
+
+.scale-bar-meta {
+  font: 10.5px var(--mono);
+  color: #a4ae9a;
+  white-space: nowrap;
+}
+
+/* EDITABLE MAP BACKGROUND LAYER */
+.map-bg-edit-bar {
+  background: linear-gradient(135deg, #272213, #191c14);
+  border-color: #8f773d;
+}
+
+.bg-edit-hint {
+  font-size: 12px;
+  color: #f0dc9d;
+  font-weight: 500;
+}
+
+.map-bg-box {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform-origin: center center;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.map-viewport[data-tool="edit-bg"] .map-bg-box {
+  pointer-events: auto;
+  cursor: move;
+  outline: 2px dashed #f0d784;
+  outline-offset: -2px;
+  z-index: 22;
+}
+
+.map-viewport[data-tool="edit-bg"] .map-bg-box.dragging-bg {
+  cursor: grabbing;
+}
+
+.map-viewport[data-tool="edit-bg"] .map-tokens-layer,
+.map-viewport[data-tool="edit-bg"] .map-walls-svg,
+.map-viewport[data-tool="edit-bg"] .dm-manual-fog-canvas {
+  pointer-events: none;
+  opacity: 0.42;
+}
+
+.map-viewport[data-tool="edit-bg"] .map-grid-overlay {
+  z-index: 24;
+  opacity: 0.9;
+}
+
+.bg-resize-handle {
+  display: none;
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #f0d784;
+  border: 3px solid #161b13;
+  box-shadow: 0 3px 10px #000b;
+  z-index: 30;
+}
+
+.map-viewport[data-tool="edit-bg"] .bg-resize-handle {
+  display: block;
+}
+
+.bg-resize-handle.nw { top: -11px; left: -11px; cursor: nwse-resize; }
+.bg-resize-handle.ne { top: -11px; right: -11px; cursor: nesw-resize; }
+.bg-resize-handle.sw { bottom: -11px; left: -11px; cursor: nesw-resize; }
+.bg-resize-handle.se { bottom: -11px; right: -11px; cursor: nwse-resize; }
+
+
+
+

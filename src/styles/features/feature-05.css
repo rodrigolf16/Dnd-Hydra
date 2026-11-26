@@ -1,0 +1,163 @@
+.sheet-content {
+  max-height: 60vh;
+  overflow: auto;
+}
+
+.sheet-content section {
+  border-top: 1px solid #30372b;
+  padding: 10px 0;
+}
+
+.sheet-content h3 {
+  font: 600 14px var(--serif);
+  margin: 2px 0 8px;
+  color: #d5e0bb;
+}
+
+.sheet-content ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.sheet-content li {
+  font-size: 11px;
+  color: #c8cfc0;
+  background: #252b21;
+  border: 1px solid #343d2e;
+  border-radius: 6px;
+  padding: 6px 9px;
+}
+
+.init-edit-list {
+  display: grid;
+  gap: 8px;
+  max-height: 52vh;
+  overflow-y: auto;
+  margin: 12px 0;
+}
+
+.init-edit-row {
+  display: grid;
+  grid-template-columns: 1fr 84px auto;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 7px;
+  background: #141812;
+  border: 1px solid #2b3228;
+}
+
+.init-edit-row b {
+  display: block;
+  font-size: 13px;
+}
+
+.init-edit-row small {
+  font-size: 11px;
+  color: #8f9788;
+}
+
+.init-edit-row input {
+  height: 34px;
+  border: 1px solid #3c4635;
+  background: #1b2018;
+  color: #e6eadc;
+  border-radius: 5px;
+  padding: 0 8px;
+  text-align: center;
+  font: 13px var(--mono);
+}
+
+.init-move-btns {
+  display: flex;
+  gap: 4px;
+}
+
+.init-move-btns button {
+  width: 28px;
+  height: 30px;
+  border: 1px solid #3b4435;
+  background: #1d231a;
+  color: #c4d1a6;
+  border-radius: 5px;
+}
+
+.init-move-btns button:hover:not(:disabled) {
+  border-color: #798c5c;
+  background: #2a3324;
+}
+
+.init-move-btns button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.help-list {
+  display: grid;
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.help-list > div {
+  padding: 11px 13px;
+  border-radius: 8px;
+  background: #141812;
+  border: 1px solid #2c3328;
+}
+
+.help-list b {
+  display: block;
+  font-size: 13px;
+  color: #dbe6be;
+  margin-bottom: 4px;
+}
+
+.help-list p {
+  margin: 0;
+  font-size: 12px;
+}
+
+/* DICE DIALOG (SOLO DM · TOP-LAYER) */
+dialog.dice-dialog {
+  width: min(540px, calc(100% - 28px));
+  padding: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  overflow: visible;
+}
+
+dialog.dice-dialog::backdrop {
+  background: #060806d9;
+  backdrop-filter: blur(7px);
+}
+
+.dice-popup-card {
+  text-align: center;
+  background: radial-gradient(ellipse at 50% 0, #293323, #171b16 70%);
+  border: 1px solid #556446;
+  border-radius: 14px;
+  padding: 26px;
+  box-shadow: 0 25px 90px #000c;
+}
+
+.dice-popup-card h2 {
+  font: 600 25px var(--serif);
+  margin: 8px 0 18px;
+}
+
+.dice-stage {
+  min-height: 150px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  perspective: 900px;
+  padding: 14px 5px 24px;
+}
+

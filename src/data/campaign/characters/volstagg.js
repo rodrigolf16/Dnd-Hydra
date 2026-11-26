@@ -1,0 +1,93 @@
+export const VOLSTAGG = {
+  id: 'volstagg',
+  name: 'Volstagg “El clamor del Oeste”',
+  avatar: 'assets/portraits/volstagg.svg',
+  owner: 'Paul',
+  species: 'Semielfo (Humano de Stromgarde)',
+  level: 5,
+  className: 'Bardo 5 · Colegio del Valor',
+  hp: 41,
+  maxHp: 42,
+  ac: 16,
+  initiative: 3,
+  speed: 9,
+  perception: 3,
+  stats: {
+    Fue: '8 (-1)',
+    Des: '17 (+3)',
+    Con: '14 (+2)',
+    Int: '8 (-1)',
+    Sab: '10 (0)',
+    Car: '17 (+3)'
+  },
+  saves: { Fue: -1, Des: 6, Con: 2, Int: -1, Sab: 0, Car: 6 },
+  skills: {
+    Acrobacias: 6,
+    Atletismo: 0,
+    'Conocimiento arcano': 0,
+    Engaño: 6,
+    Historia: 0,
+    Interpretación: 6,
+    Intimidación: 4,
+    Investigación: 0,
+    'Juego de manos': 4,
+    Medicina: 1,
+    Naturaleza: 0,
+    Percepción: 3,
+    Perspicacia: 1,
+    Persuasión: 9,
+    Religión: 0,
+    Sigilo: 4,
+    Supervivencia: 1,
+    'Trato con animales': 1
+  },
+  masteries: ['Mellar'],
+  feats: ['Maestro de armas', 'Músico'],
+  features: [
+    'Semielfo (Humano de Stromgarde)',
+    'Aprendiz de mucho',
+    'Fuente de inspiración',
+    'Inspiración bárdica',
+    'Lanzamiento de conjuros',
+    'Colegio del Valor',
+    'Entrenamiento marcial',
+    'Inspiración en Combate',
+    'Voluntad de sobrevivir'
+  ],
+  spells: {
+    saveDc: 14,
+    attack: 6,
+    prepared: 9,
+    level1Slots: 4,
+    level2Slots: 3,
+    level3Slots: 2,
+    names: [
+      'Burla dañina',
+      'Mano de mago',
+      'Prestidigitación',
+      'Caída de pluma',
+      'Curar heridas',
+      'Disfrazarse',
+      'Dormir',
+      'Fuego feérico',
+      'Ola atronadora',
+      'Palabra de curación'
+    ]
+  },
+  weapons: [
+    { name: 'Cimitarra', attack: 9, damage: '1d6+6', type: 'cortante', mastery: 'Mellar', tags: ['ligera', 'sutil'] },
+    { name: 'Daga 1', attack: 6, damage: '1d4+3', type: 'perforante', mastery: 'Mellar', tags: ['ligera', 'sutil', 'arrojadiza'] },
+    { name: 'Daga 2', attack: 6, damage: '1d4+3', type: 'perforante', mastery: 'Mellar', tags: ['ligera', 'sutil', 'arrojadiza'] }
+  ],
+  equipment: ['Cimitarra', 'Daga ×2', 'Coraza', 'Bolsito fachero', 'Nevan', 'McClaud', 'La mentirosa', 'Flauta'],
+  languages: ['Común', 'Élfico', 'Silvano', 'Jerga de ladrones'],
+  proficiencies: ['Armadura intermedia', 'Armadura ligera', 'Armas marciales', 'Armas sencillas', 'Escudo', 'Instrumentos musicales'],
+  background: 'Caótico bueno · Semielfo (Humano de Stromgarde)',
+  details: [
+    'Alineamiento: Caótico bueno',
+    'Edad: 69',
+    'Apariencia: semielfo curtido, cabello oscuro y cicatrices; abrigo verde bordado, pañuelo rojo y laúd ornamentado.',
+    'Historia: hijo de un elfo noble y una animadora humana. Se formó en ferias como músico y acróbata. Tras ser rechazado por la familia paterna, perdió su fama y cayó en el alcohol; aún busca volver a ser reconocido.',
+    'Trasfondo: Animador.'
+  ]
+};

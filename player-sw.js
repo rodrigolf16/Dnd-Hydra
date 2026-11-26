@@ -1,13 +1,11 @@
 // Service Worker para Ronda — Guía Móvil de Jugadores (cache offline)
-const CACHE_NAME = 'ronda-player-v1';
+const CACHE_NAME = 'ronda-player-v3';
 const ASSETS = [
   './player.html',
-  './player.css',
-  './player.js',
-  './campaign-data.js',
-  './sync-bridge.js',
-  './lib/peerjs.min.js',
   './player-manifest.webmanifest',
+  './lib/peerjs.min.js',
+  './src/styles/player/main.css',
+  './src/presentation/player-pwa/main.js',
   './assets/icons/icon48.png',
   './assets/icons/icon128.png',
   './assets/portraits/khael.svg',

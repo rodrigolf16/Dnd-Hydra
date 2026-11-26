@@ -1,0 +1,142 @@
+/* Mobile Turn Chooser Cards & Quick Movement Pills */
+.choice-grid {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.move-choice-card {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 12px 13px;
+  border-radius: 12px;
+  border: 1px solid rgba(186, 210, 139, 0.22);
+  background: rgba(24, 30, 21, 0.92);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.16s ease, transform 0.12s ease, background 0.16s ease;
+}
+
+.move-choice-card:active {
+  transform: scale(0.985);
+}
+
+.move-choice-card:hover {
+  border-color: rgba(186, 210, 139, 0.55);
+  background: rgba(31, 40, 27, 0.98);
+}
+
+.move-choice-card.spent {
+  opacity: 0.45;
+  border-style: dashed;
+}
+
+.move-choice-ico {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: rgba(186, 210, 139, 0.12);
+  border: 1px solid rgba(186, 210, 139, 0.25);
+  display: grid;
+  place-items: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.move-choice-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.move-choice-body b {
+  font-size: 14px;
+  color: #eef1e4;
+}
+
+.move-choice-body small {
+  font-size: 12px;
+  color: #9ba58f;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.move-choice-right {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+}
+
+.move-preview {
+  font-family: 'DM Mono', monospace;
+  font-size: 11.5px;
+  color: #bad28b;
+  background: rgba(186, 210, 139, 0.1);
+  padding: 4px 7px;
+  border-radius: 7px;
+}
+
+.move-arrow {
+  font-style: normal;
+  color: #8f9a83;
+  font-size: 14px;
+}
+
+.move-quick-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.move-dist-pill {
+  flex: 1 1 auto;
+  min-width: 78px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(136, 184, 204, 0.35);
+  background: rgba(20, 32, 36, 0.85);
+  color: #cbe7f2;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.turn-done-callout {
+  padding: 13px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(186, 210, 139, 0.4);
+  background: rgba(45, 62, 34, 0.45);
+  margin-bottom: 12px;
+}
+
+.turn-done-callout b {
+  color: #d7eba9;
+  font-size: 14px;
+}
+
+.turn-done-callout p {
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  color: #c2ccb7;
+}
+
+.spent-toggle-btn {
+  width: 100%;
+  margin: 4px 0 12px;
+  padding: 9px 12px;
+  border-radius: 9px;
+  border: 1px dashed rgba(255, 255, 255, 0.18);
+  background: transparent;
+  color: #9ba58f;
+  font-size: 12.5px;
+  cursor: pointer;
+}

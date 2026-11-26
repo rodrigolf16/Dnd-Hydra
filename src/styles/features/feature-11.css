@@ -1,0 +1,171 @@
+@media (max-width: 640px) {
+  .app-shell { grid-template-columns: 1fr; }
+  .sidebar {
+    position: static;
+    height: auto;
+    min-height: 0;
+    flex-direction: row;
+    align-items: center;
+    padding: 8px 10px;
+    gap: 6px;
+    border-right: 0;
+    border-bottom: 1px solid #242920;
+    overflow-x: auto;
+  }
+  .brand { margin: 0 6px 0 0; }
+  .nav-item { width: 38px; height: 38px; flex-shrink: 0; }
+  .sidebar-bottom { margin-top: 0; margin-left: auto; display: flex; align-items: center; gap: 6px; }
+  .campaign { margin-bottom: 0; width: 38px; height: 38px; padding: 0; }
+  .user-row { border-top: 0; padding: 0; }
+  .topbar { padding: 10px 12px; }
+  .dm-mode-badge { font-size: 11px; padding: 0 9px; }
+  .invite-btn span { display: none; }
+  .content { padding: 16px 12px 36px; }
+  .page-heading { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .page-heading h1 { font-size: 23px; }
+  .character-card { flex-direction: column; }
+  .char-portrait { width: 100%; height: 170px; border-right: 0; border-bottom: 1px solid #333b2d; }
+  .resource-grid { grid-template-columns: 1fr; }
+  .right-column { display: flex; }
+  .form-grid, .n20-actions-grid { grid-template-columns: 1fr; }
+  .form-grid .span-2 { grid-column: auto; }
+  .ability-row { grid-template-columns: repeat(3, 1fr); gap: 8px 4px; }
+  .action-grid { grid-template-columns: 1fr; }
+}
+
+/* =========================================================================
+   DM MOBILE PLAYER SYNC (QR + LIVE WEBRTC BRIDGE)
+   ========================================================================= */
+.mobile-sync-pill.live {
+  border-color: rgba(186, 210, 139, 0.65);
+  background: rgba(186, 210, 139, 0.14);
+  color: var(--green);
+}
+
+.mobile-sync-dialog {
+  width: min(94vw, 600px);
+}
+
+.ms-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border-strong);
+  background: #141812;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.ms-status-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.ms-status-info b {
+  display: block;
+  font-size: 14px;
+}
+
+.ms-status-info small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.ms-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #677061;
+  flex-shrink: 0;
+}
+
+.ms-dot.open {
+  background: var(--green);
+  box-shadow: 0 0 10px rgba(186, 210, 139, 0.85);
+}
+
+.ms-dot.connecting {
+  background: var(--gold);
+}
+
+.ms-dot.error {
+  background: var(--red);
+}
+
+.ms-grid {
+  display: grid;
+  grid-template-columns: 196px 1fr;
+  gap: 14px;
+  align-items: start;
+  margin-bottom: 14px;
+}
+
+.ms-qr-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border-strong);
+  background: #141812;
+  text-align: center;
+}
+
+.ms-qr-card small {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+.ms-qr-box {
+  width: 168px;
+  height: 168px;
+  padding: 8px;
+  border-radius: 10px;
+  background: #f5f5ef;
+  display: grid;
+  place-items: center;
+}
+
+.ms-qr-box svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.ms-code-col {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  min-width: 0;
+}
+
+.ms-code-box {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #141812;
+}
+
+.ms-code-box span {
+  display: block;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin-bottom: 5px;
+}
+
+.ms-code-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
