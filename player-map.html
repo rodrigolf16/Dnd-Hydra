@@ -42,6 +42,14 @@
         <canvas class="fog-canvas" id="playerFogCanvas"></canvas>
       </div>
 
+      <div class="map-scale-bar" id="playerScaleBar" title="Escala real del mapa">
+        <div class="scale-bar-top">
+          <span class="scale-bar-line"></span>
+          <b class="scale-bar-label">9 m</b>
+        </div>
+        <small class="scale-bar-meta">6 casillas</small>
+      </div>
+
       <div class="player-empty-msg" id="playerEmptyMsg" hidden>
         <b>Mapa listo para los jugadores</b>
         <span>Cuando el DM cargue un mapa o mueva figuras en su pestaña, se actualizará aquí en tiempo real con niebla de guerra y visión de cada personaje.</span>
@@ -64,6 +72,7 @@
   </div>
 
   <script src="campaign-data.js"></script>
+  <script src="map-engine.js"></script>
   <script src="player-map.js"></script>
 </body>
 </html>

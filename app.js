@@ -113,8 +113,10 @@
   let toastTimer = null;
   let pendingEnemyUploadDataUrl = '';
   let pendingEditAvatarDataUrl = '';
+  const ME = window.RondaMapEngine;
   let currentMainView = 'encounter';
-  let mapMeasureMode = false;
+  let mapTool = 'pan'; // 'pan' | 'measure' | 'wall' | 'wall-erase' | 'fog-cover' | 'fog-reveal'
+  let mapFogBrushRadius = 52;
   let mapInitializedView = false;
 
   // Physical Dice Pool state (right sidebar)
@@ -603,7 +605,11 @@
       bgImage: '',
       width: 1280,
       height: 840,
+      natWidth: 1280,
+      natHeight: 840,
+      rotation: 0,
       gridSize: 56,
+      metersPerSquare: 1.5,
       showGrid: true,
       snap: true,
       trackMove: true,
@@ -616,7 +622,9 @@
       panX: 0,
       panY: 0,
       tokens: {},
-      markers: []
+      markers: [],
+      walls: [],
+      fogStrokes: []
     };
   }
 
@@ -628,6 +636,8 @@
     });
     if (!obj.map.tokens || typeof obj.map.tokens !== 'object') obj.map.tokens = {};
     if (!Array.isArray(obj.map.markers)) obj.map.markers = [];
+    if (!Array.isArray(obj.map.walls)) obj.map.walls = [];
+    if (!Array.isArray(obj.map.fogStrokes)) obj.map.fogStrokes = [];
   }
 
   function buildDefaultState() {
@@ -3082,29 +3092,47 @@
 
   function computePlayerVisionSourcesForDm() {
     const m = state.map;
-    const gs = m.gridSize || 56;
     const light = m.lighting || 'day';
-    const mToPx = meters => (meters / 1.5) * gs;
+    const walls = Array.isArray(m.walls) ? m.walls : [];
+    const maxMapSpanPx = Math.hypot(m.width || 1280, m.height || 840) + 40;
+    const mToPx = meters => ME ? ME.metersToPx(meters, m) : (meters / 1.5) * (m.gridSize || 56);
     const sources = [];
 
     state.combatants.forEach(c => {
       if (c.type === 'enemy') return;
       const tok = m.tokens[c.id];
-      if (!tok || tok.hidden || c.hp <= 0) return;
+      if (!tok || tok.hidden || tok.staged || c.hp <= 0) return;
       const dv = typeof tok.darkvision === 'number' ? tok.darkvision : getDefaultDarkvisionMeters(c);
       const carried = getLightRadiusMeters(tok.light || 'none');
-      let brightM = 0, dimM = 0;
-      if (light === 'day') { brightM = Math.max(36, dv, carried.bright); dimM = Math.max(48, carried.dim); }
-      else if (light === 'dim') { brightM = Math.max(dv, carried.bright, 4.5); dimM = Math.max(dv + 6, carried.dim, 18); }
-      else if (light === 'night') { brightM = Math.max(carried.bright, dv > 0 ? dv * 0.75 : 1.5); dimM = Math.max(carried.dim, dv > 0 ? dv : 3); }
-      else { brightM = Math.max(carried.bright, dv > 0 ? dv * 0.65 : 1.2); dimM = Math.max(carried.dim, dv > 0 ? dv : 1.8); }
-      sources.push({ x: tok.x, y: tok.y, brightPx: mToPx(brightM), dimPx: mToPx(dimM), hasLight: carried.bright > 0, dv });
+      let brightPx = 0, dimPx = 0;
+      if (light === 'day') {
+        brightPx = walls.length ? maxMapSpanPx : mToPx(Math.max(36, dv, carried.bright));
+        dimPx = walls.length ? maxMapSpanPx : mToPx(Math.max(48, carried.dim));
+      } else if (light === 'dim') {
+        brightPx = mToPx(Math.max(dv, carried.bright, 4.5));
+        dimPx = mToPx(Math.max(dv + 6, carried.dim, 18));
+      } else if (light === 'night') {
+        brightPx = mToPx(Math.max(carried.bright, dv > 0 ? dv * 0.75 : 1.5));
+        dimPx = mToPx(Math.max(carried.dim, dv > 0 ? dv : 3));
+      } else {
+        brightPx = mToPx(Math.max(carried.bright, dv > 0 ? dv * 0.65 : 1.2));
+        dimPx = mToPx(Math.max(carried.dim, dv > 0 ? dv : 1.8));
+      }
+      const polygon = (ME && walls.length && dimPx > 0)
+        ? ME.computeVisibilityPolygon(tok.x, tok.y, dimPx, walls)
+        : null;
+      sources.push({ x: tok.x, y: tok.y, brightPx, dimPx, polygon, hasLight: carried.bright > 0, dv });
     });
 
     (m.markers || []).forEach(mk => {
       if (mk.dmOnly) return;
       if (mk.icon === '🔥' || /antorcha|fuego|fogata|luz|linterna/i.test(mk.label || '')) {
-        sources.push({ x: mk.x, y: mk.y, brightPx: mToPx(6), dimPx: mToPx(12), hasLight: true, dv: 0 });
+        const brightPx = mToPx(6);
+        const dimPx = mToPx(12);
+        const polygon = (ME && walls.length && dimPx > 0)
+          ? ME.computeVisibilityPolygon(mk.x, mk.y, dimPx, walls)
+          : null;
+        sources.push({ x: mk.x, y: mk.y, brightPx, dimPx, polygon, hasLight: true, dv: 0 });
       }
     });
     return sources;
@@ -3113,8 +3141,24 @@
   function isEnemyVisibleToPlayers(tok, sources) {
     if (!tok || tok.hidden || tok.staged) return false;
     const m = state.map;
-    if (!m.fogEnabled || (m.lighting || 'day') === 'day') return true;
-    return sources.some(s => Math.hypot(tok.x - s.x, tok.y - s.y) <= s.dimPx);
+    const fogOn = m.fogEnabled !== false;
+    const walls = Array.isArray(m.walls) ? m.walls : [];
+    const fogStrokes = Array.isArray(m.fogStrokes) ? m.fogStrokes : [];
+
+    if (fogOn && ME && fogStrokes.length) {
+      const manual = ME.getManualFogStateAt(tok.x, tok.y, fogStrokes);
+      if (manual === 'reveal') return true;
+      if (manual === 'cover') return false;
+    }
+
+    if (!fogOn) return true;
+    if ((m.lighting || 'day') === 'day' && !walls.length) return true;
+
+    return sources.some(s => {
+      if (Math.hypot(tok.x - s.x, tok.y - s.y) > s.dimPx) return false;
+      if (walls.length && ME && ME.isBlockedByWalls(s.x, s.y, tok.x, tok.y, walls)) return false;
+      return true;
+    });
   }
 
   function ensureTokenPositions() {
@@ -3169,12 +3213,14 @@
   }
 
   function calcGridDistanceMeters(x1, y1, x2, y2) {
-    const gs = state.map.gridSize || 56;
+    const m = state.map;
+    const gs = m.gridSize || 56;
+    const mps = ME ? ME.getMetersPerSquare(m) : 1.5;
     const dx = Math.abs(x2 - x1) / gs;
     const dy = Math.abs(y2 - y1) / gs;
     // D&D 5e/2024 standard diagonal movement = Chebyshev (max of dx, dy)
     const squares = Math.round(Math.max(dx, dy) * 2) / 2;
-    const meters = Math.round(squares * 1.5 * 10) / 10;
+    const meters = Math.round(squares * mps * 10) / 10;
     return { squares, meters };
   }
 
@@ -3185,6 +3231,7 @@
     stage.style.height = `${m.height}px`;
     stage.style.transform = `translate(${m.panX}px, ${m.panY}px) scale(${m.zoom})`;
     $('#mapZoomLabel').textContent = `${Math.round(m.zoom * 100)}%`;
+    if (ME) ME.renderScaleBar($('#dmScaleBar'), m, m.zoom);
   }
 
   function fitMapToViewport() {
@@ -3194,7 +3241,7 @@
     const pad = 20;
     const zx = (vp.clientWidth - pad * 2) / m.width;
     const zy = (vp.clientHeight - pad * 2) / m.height;
-    m.zoom = Math.max(0.3, Math.min(1.5, Math.min(zx, zy)));
+    m.zoom = Math.max(0.25, Math.min(1.6, Math.min(zx, zy)));
     m.panX = Math.round((vp.clientWidth - m.width * m.zoom) / 2);
     m.panY = Math.round((vp.clientHeight - m.height * m.zoom) / 2);
     applyStageTransform();
@@ -3209,6 +3256,78 @@
     applyStageTransform();
   }
 
+  function renderDmManualFogCanvas(m) {
+    const canvas = $('#mapManualFogCanvas');
+    if (!canvas) return;
+    const w = m.width || 1280;
+    const h = m.height || 840;
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w;
+      canvas.height = h;
+    }
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, w, h);
+    if (!ME || !Array.isArray(m.fogStrokes) || !m.fogStrokes.length) return;
+
+    // Render DM translucent preview so DM sees what is manually covered for players without losing map visibility
+    m.fogStrokes.forEach(st => {
+      ctx.save();
+      if (st.mode === 'reveal') {
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.fillStyle = 'rgba(0,0,0,1)';
+        ctx.strokeStyle = 'rgba(0,0,0,1)';
+      } else {
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.fillStyle = 'rgba(26, 18, 42, 0.52)';
+        ctx.strokeStyle = 'rgba(26, 18, 42, 0.52)';
+      }
+      ME.drawFogStrokePath(ctx, st);
+      ctx.restore();
+    });
+  }
+
+  function renderDmWallsSvg(m) {
+    const svg = $('#mapWallsSvg');
+    if (!svg) return;
+    svg.replaceChildren();
+    const walls = Array.isArray(m.walls) ? m.walls : [];
+    const countEl = $('#mapWallCount');
+    if (countEl) countEl.textContent = String(walls.length);
+
+    walls.forEach((w, idx) => {
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', String(w.x1));
+      line.setAttribute('y1', String(w.y1));
+      line.setAttribute('x2', String(w.x2));
+      line.setAttribute('y2', String(w.y2));
+      line.setAttribute('class', 'dm-wall-seg');
+      line.dataset.wallIdx = String(idx);
+      svg.append(line);
+
+      const c1 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      c1.setAttribute('cx', String(w.x1)); c1.setAttribute('cy', String(w.y1)); c1.setAttribute('r', '4');
+      c1.setAttribute('class', 'dm-wall-node');
+      const c2 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      c2.setAttribute('cx', String(w.x2)); c2.setAttribute('cy', String(w.y2)); c2.setAttribute('r', '4');
+      c2.setAttribute('class', 'dm-wall-node');
+      svg.append(c1, c2);
+    });
+  }
+
+  function setMapTool(nextTool) {
+    mapTool = mapTool === nextTool ? 'pan' : nextTool;
+    renderMapView();
+    const hints = {
+      pan: 'Modo normal: arrastra pines o mueve el mapa',
+      measure: 'Regla activa: arrastra sobre el mapa para medir distancia en metros',
+      wall: 'Paredes activo: arrastra para trazar paredes que bloquean la visión (Esc para salir)',
+      'wall-erase': 'Borrador de paredes: haz clic sobre cualquier pared para quitarla',
+      'fog-cover': 'Pincel de niebla: arrastra sobre bosques o edificios para ocultarlos a los jugadores',
+      'fog-reveal': 'Revelar área: arrastra para despejar niebla manualmente'
+    };
+    toast(hints[mapTool] || '');
+  }
+
   function renderMapView() {
     ensureTokenPositions();
     const m = state.map;
@@ -3217,18 +3336,37 @@
     $('#mapGridToggle').checked = !!m.showGrid;
     $('#mapSnapToggle').checked = !!m.snap;
     $('#mapTrackMoveToggle').checked = !!m.trackMove;
-    $('#mapGridSize').value = String(m.gridSize || 56);
+    $('#mapGridSize').value = String(Math.round(m.gridSize || 56));
+    if ($('#mapMetersPerSqSelect')) {
+      const mps = String(ME ? ME.getMetersPerSquare(m) : 1.5);
+      if ([...$('#mapMetersPerSqSelect').options].some(o => o.value === mps)) {
+        $('#mapMetersPerSqSelect').value = mps;
+      }
+    }
+    const widthInp = $('#mapWidthMetersInput');
+    if (widthInp && document.activeElement !== widthInp && ME) {
+      widthInp.value = String(Math.round(ME.getMapWidthMeters(m)));
+    }
     $('#mapLightingSelect').value = m.lighting || 'day';
     $('#mapFogToggle').checked = m.fogEnabled !== false;
     $('#mapFogMemoryToggle').checked = m.fogMemory !== false;
     $('#mapShowVisionRingsToggle').checked = m.showVisionRings !== false;
-    $('#mapMeasureBtn').classList.toggle('tool-active', mapMeasureMode);
-    $('#mapViewport').classList.toggle('measuring', mapMeasureMode);
+
+    // Active tool highlights
+    $('#mapMeasureBtn').classList.toggle('tool-active', mapTool === 'measure');
+    $('#mapWallDrawBtn')?.classList.toggle('tool-active', mapTool === 'wall');
+    $('#mapWallEraseBtn')?.classList.toggle('tool-active', mapTool === 'wall-erase');
+    $('#mapFogCoverBtn')?.classList.toggle('tool-active', mapTool === 'fog-cover');
+    $('#mapFogRevealBtn')?.classList.toggle('tool-active', mapTool === 'fog-reveal');
+    const vpEl = $('#mapViewport');
+    vpEl.classList.toggle('measuring', mapTool !== 'pan');
+    vpEl.dataset.tool = mapTool;
 
     // Background image & grid
     const bgImg = $('#mapBgImg');
     if (m.bgImage) {
       bgImg.src = m.bgImage;
+      if (ME) ME.applyBgImageRotation(bgImg, m);
       bgImg.hidden = false;
       $('#mapEmptyHint').hidden = true;
     } else {
@@ -3241,19 +3379,29 @@
     gridEl.style.setProperty('--grid-size', `${m.gridSize}px`);
 
     applyStageTransform();
+    renderDmManualFogCanvas(m);
+    renderDmWallsSvg(m);
 
-    // Compute player vision sources & draw DM preview vision rings
+    // Compute player vision sources & draw DM preview vision rings (clipped by walls!)
     const visionSources = computePlayerVisionSourcesForDm();
     const visionSvg = $('#mapVisionSvg');
     visionSvg.replaceChildren();
-    if (m.showVisionRings && (m.lighting || 'day') !== 'day') {
+    const hasWalls = Array.isArray(m.walls) && m.walls.length > 0;
+    if (m.showVisionRings && ((m.lighting || 'day') !== 'day' || hasWalls)) {
       visionSources.forEach(s => {
-        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        circle.setAttribute('cx', String(s.x));
-        circle.setAttribute('cy', String(s.y));
-        circle.setAttribute('r', String(s.dimPx));
-        circle.setAttribute('class', s.hasLight ? 'vision-ring-light' : 'vision-ring-dv');
-        visionSvg.append(circle);
+        if (s.polygon && s.polygon.length >= 3) {
+          const poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+          poly.setAttribute('points', s.polygon.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' '));
+          poly.setAttribute('class', s.hasLight ? 'vision-ring-light' : 'vision-ring-dv');
+          visionSvg.append(poly);
+        } else {
+          const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          circle.setAttribute('cx', String(s.x));
+          circle.setAttribute('cy', String(s.y));
+          circle.setAttribute('r', String(s.dimPx));
+          circle.setAttribute('class', s.hasLight ? 'vision-ring-light' : 'vision-ring-dv');
+          visionSvg.append(circle);
+        }
       });
     }
 
@@ -3650,7 +3798,7 @@
 
   function attachTokenDrag(el, combatant, tok) {
     el.addEventListener('pointerdown', e => {
-      if (mapMeasureMode || e.button !== 0) return;
+      if (mapTool !== 'pan' || e.button !== 0) return;
       e.stopPropagation();
       el.setPointerCapture(e.pointerId);
       el.classList.add('dragging');
@@ -3719,7 +3867,7 @@
 
   function attachMarkerDrag(el, mk) {
     el.addEventListener('pointerdown', e => {
-      if (mapMeasureMode || e.button !== 0) return;
+      if (mapTool !== 'pan' || e.button !== 0) return;
       e.stopPropagation();
       el.setPointerCapture(e.pointerId);
       el.classList.add('dragging');
@@ -3751,15 +3899,16 @@
     });
   }
 
-  // Viewport Panning, Wheel Zoom & Measuring Ruler
+  // Viewport Panning, Wheel Zoom, Measuring Ruler, Wall Drawing & Manual Fog Brush
   (() => {
     const vp = $('#mapViewport');
     vp.addEventListener('pointerdown', e => {
       if (e.button !== 0) return;
-      if (e.target.closest('.map-token, .map-marker-pin')) return;
+      if (mapTool === 'pan' && e.target.closest('.map-token, .map-marker-pin')) return;
       vp.setPointerCapture(e.pointerId);
 
-      if (mapMeasureMode) {
+      // 1. Measuring ruler
+      if (mapTool === 'measure') {
         const p0 = clientToStageCoords(e.clientX, e.clientY);
         const svg = $('#mapMeasureSvg');
         const line = $('#mapMeasureLine');
@@ -3797,6 +3946,104 @@
         return;
       }
 
+      // 2. Draw Line-of-Sight Wall
+      if (mapTool === 'wall') {
+        const clampWall = p => ({
+          x: Math.max(0, Math.min(state.map.width, Math.round(p.x))),
+          y: Math.max(0, Math.min(state.map.height, Math.round(p.y)))
+        });
+        const p0 = clampWall(clientToStageCoords(e.clientX, e.clientY));
+        let p1 = { ...p0 };
+        const wallsSvg = $('#mapWallsSvg');
+        const preview = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        preview.setAttribute('x1', String(p0.x)); preview.setAttribute('y1', String(p0.y));
+        preview.setAttribute('x2', String(p1.x)); preview.setAttribute('y2', String(p1.y));
+        preview.setAttribute('class', 'dm-wall-preview');
+        wallsSvg?.append(preview);
+
+        const onWallMove = ev => {
+          p1 = clampWall(clientToStageCoords(ev.clientX, ev.clientY));
+          preview.setAttribute('x2', String(p1.x));
+          preview.setAttribute('y2', String(p1.y));
+        };
+
+        const endWall = ev => {
+          vp.releasePointerCapture(ev.pointerId);
+          vp.removeEventListener('pointermove', onWallMove);
+          vp.removeEventListener('pointerup', endWall);
+          vp.removeEventListener('pointercancel', endWall);
+          preview.remove();
+          if (Math.hypot(p1.x - p0.x, p1.y - p0.y) >= 10) {
+            state.map.walls.push({ x1: p0.x, y1: p0.y, x2: p1.x, y2: p1.y });
+            saveState();
+            renderMapView();
+          }
+        };
+
+        vp.addEventListener('pointermove', onWallMove);
+        vp.addEventListener('pointerup', endWall);
+        vp.addEventListener('pointercancel', endWall);
+        return;
+      }
+
+      // 3. Erase Wall on click
+      if (mapTool === 'wall-erase') {
+        vp.releasePointerCapture(e.pointerId);
+        const pt = clientToStageCoords(e.clientX, e.clientY);
+        const threshold = Math.max(12, 16 / (state.map.zoom || 1));
+        let bestIdx = -1;
+        let bestDist = Infinity;
+        (state.map.walls || []).forEach((w, idx) => {
+          const d = ME ? ME.pointToSegmentDist(pt.x, pt.y, w.x1, w.y1, w.x2, w.y2) : Infinity;
+          if (d < bestDist) { bestDist = d; bestIdx = idx; }
+        });
+        if (bestIdx >= 0 && bestDist <= threshold) {
+          state.map.walls.splice(bestIdx, 1);
+          saveState();
+          renderMapView();
+          toast('Pared eliminada');
+        }
+        return;
+      }
+
+      // 4. Manual Fog Brush (Cover / Reveal)
+      if (mapTool === 'fog-cover' || mapTool === 'fog-reveal') {
+        const mode = mapTool === 'fog-reveal' ? 'reveal' : 'cover';
+        const p0 = clientToStageCoords(e.clientX, e.clientY);
+        const stroke = {
+          mode,
+          radius: mapFogBrushRadius,
+          points: [{ x: Math.round(p0.x), y: Math.round(p0.y) }]
+        };
+        state.map.fogStrokes.push(stroke);
+        renderDmManualFogCanvas(state.map);
+
+        const onBrushMove = ev => {
+          const p = clientToStageCoords(ev.clientX, ev.clientY);
+          const last = stroke.points[stroke.points.length - 1];
+          if (Math.hypot(p.x - last.x, p.y - last.y) >= 8) {
+            stroke.points.push({ x: Math.round(p.x), y: Math.round(p.y) });
+            renderDmManualFogCanvas(state.map);
+            broadcastStateThrottled();
+          }
+        };
+
+        const endBrush = ev => {
+          vp.releasePointerCapture(ev.pointerId);
+          vp.removeEventListener('pointermove', onBrushMove);
+          vp.removeEventListener('pointerup', endBrush);
+          vp.removeEventListener('pointercancel', endBrush);
+          saveState();
+          renderMapView();
+        };
+
+        vp.addEventListener('pointermove', onBrushMove);
+        vp.addEventListener('pointerup', endBrush);
+        vp.addEventListener('pointercancel', endBrush);
+        return;
+      }
+
+      // 5. Default Panning
       vp.classList.add('panning');
       const startX = e.clientX;
       const startY = e.clientY;
@@ -3830,13 +4077,22 @@
       const mx = e.clientX - rect.left;
       const my = e.clientY - rect.top;
       const prevZoom = state.map.zoom;
-      const nextZoom = Math.max(0.3, Math.min(2.6, prevZoom * factor));
+      const nextZoom = Math.max(0.25, Math.min(3.2, prevZoom * factor));
       state.map.panX = mx - ((mx - state.map.panX) / prevZoom) * nextZoom;
       state.map.panY = my - ((my - state.map.panY) / prevZoom) * nextZoom;
       state.map.zoom = nextZoom;
       applyStageTransform();
     }, { passive: false });
   })();
+
+  // Pressing Esc exits any active drawing/measuring tool back to normal pan mode
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && currentMainView === 'map' && mapTool !== 'pan' && !$$('dialog[open]').length) {
+      mapTool = 'pan';
+      renderMapView();
+      toast('Modo normal activado');
+    }
+  });
 
   // Map Toolbar & Dialog Events
   $('#mapUploadBtn').addEventListener('click', () => $('#mapBgFileInput').click());
@@ -3858,6 +4114,9 @@
         state.map.bgImage = canvas.toDataURL('image/jpeg', 0.84);
         state.map.width = w;
         state.map.height = h;
+        state.map.natWidth = w;
+        state.map.natHeight = h;
+        state.map.rotation = 0;
         saveState();
         renderMapView();
         requestAnimationFrame(() => fitMapToViewport());
@@ -3881,8 +4140,13 @@
     img.onload = () => {
       const maxDim = 1600;
       const scale = Math.min(1, maxDim / Math.max(img.naturalWidth || 1280, img.naturalHeight || 840));
-      state.map.width = Math.max(320, Math.round((img.naturalWidth || 1280) * scale));
-      state.map.height = Math.max(240, Math.round((img.naturalHeight || 840) * scale));
+      const w = Math.max(320, Math.round((img.naturalWidth || 1280) * scale));
+      const h = Math.max(240, Math.round((img.naturalHeight || 840) * scale));
+      state.map.width = w;
+      state.map.height = h;
+      state.map.natWidth = w;
+      state.map.natHeight = h;
+      state.map.rotation = 0;
       state.map.bgImage = url;
       saveState();
       renderMapView();
@@ -3892,6 +4156,7 @@
     };
     img.onerror = () => {
       state.map.bgImage = url;
+      state.map.rotation = 0;
       saveState();
       renderMapView();
       closeDialog(dialogs.mapUrl);
@@ -3900,10 +4165,31 @@
     img.src = url;
   });
 
+  $('#mapRotateLeftBtn')?.addEventListener('click', () => {
+    if (!ME) return;
+    ME.rotateMap90(state.map, false);
+    saveState();
+    renderMapView();
+    requestAnimationFrame(() => fitMapToViewport());
+    toast(`Mapa girado a ${state.map.rotation}°`);
+  });
+
+  $('#mapRotateRightBtn')?.addEventListener('click', () => {
+    if (!ME) return;
+    ME.rotateMap90(state.map, true);
+    saveState();
+    renderMapView();
+    requestAnimationFrame(() => fitMapToViewport());
+    toast(`Mapa girado a ${state.map.rotation}°`);
+  });
+
   $('#mapClearBgBtn').addEventListener('click', () => {
     state.map.bgImage = '';
     state.map.width = 1280;
     state.map.height = 840;
+    state.map.natWidth = 1280;
+    state.map.natHeight = 840;
+    state.map.rotation = 0;
     if (typeof chrome !== 'undefined' && chrome.storage?.local) {
       chrome.storage.local.remove('rondaMapBgImage').catch(() => {});
     }
@@ -3916,15 +4202,70 @@
   $('#mapGridToggle').addEventListener('change', e => { state.map.showGrid = e.target.checked; saveState(); renderMapView(); });
   $('#mapSnapToggle').addEventListener('change', e => { state.map.snap = e.target.checked; saveState(); });
   $('#mapTrackMoveToggle').addEventListener('change', e => { state.map.trackMove = e.target.checked; saveState(); });
-  $('#mapGridSize').addEventListener('input', e => { state.map.gridSize = Number(e.target.value) || 56; renderMapView(); });
-  $('#mapGridSize').addEventListener('change', () => saveState());
-  $('#mapZoomIn').addEventListener('click', () => { state.map.zoom = Math.min(2.6, state.map.zoom * 1.18); applyStageTransform(); saveState(); });
-  $('#mapZoomOut').addEventListener('click', () => { state.map.zoom = Math.max(0.3, state.map.zoom * 0.85); applyStageTransform(); saveState(); });
-  $('#mapResetViewBtn').addEventListener('click', () => { fitMapToViewport(); saveState(); });
-  $('#mapMeasureBtn').addEventListener('click', () => {
-    mapMeasureMode = !mapMeasureMode;
+
+  $('#mapWidthMetersInput')?.addEventListener('change', e => {
+    if (!ME) return;
+    const targetM = parseFloat(e.target.value);
+    if (!Number.isFinite(targetM) || targetM < 6) return;
+    ME.setMapWidthMeters(state.map, targetM);
+    saveState();
     renderMapView();
-    toast(mapMeasureMode ? 'Regla activa: arrastra sobre el mapa para medir distancia en metros' : 'Regla desactivada');
+    toast(`Escala ajustada: mapa de ${ME.getMapWidthMeters(state.map)} × ${ME.getMapHeightMeters(state.map)} m`);
+  });
+
+  $('#mapMetersPerSqSelect')?.addEventListener('change', e => {
+    state.map.metersPerSquare = parseFloat(e.target.value) || 1.5;
+    saveState();
+    renderMapView();
+    toast(`Escala: 1 casilla = ${formatMeters(state.map.metersPerSquare)} m`);
+  });
+
+  $('#mapGridSize').addEventListener('input', e => {
+    state.map.gridSize = Number(e.target.value) || 56;
+    renderMapView();
+  });
+  $('#mapGridSize').addEventListener('change', () => saveState());
+  $('#mapZoomIn').addEventListener('click', () => { state.map.zoom = Math.min(3.2, state.map.zoom * 1.18); applyStageTransform(); saveState(); });
+  $('#mapZoomOut').addEventListener('click', () => { state.map.zoom = Math.max(0.25, state.map.zoom * 0.85); applyStageTransform(); saveState(); });
+  $('#mapResetViewBtn').addEventListener('click', () => { fitMapToViewport(); saveState(); });
+  $('#mapMeasureBtn').addEventListener('click', () => setMapTool('measure'));
+
+  // Walls & Manual Fog Brush Toolbar Controls
+  $('#mapWallDrawBtn')?.addEventListener('click', () => setMapTool('wall'));
+  $('#mapWallEraseBtn')?.addEventListener('click', () => setMapTool('wall-erase'));
+  $('#mapWallUndoBtn')?.addEventListener('click', () => {
+    if (!state.map.walls?.length) { toast('No hay paredes para deshacer'); return; }
+    state.map.walls.pop();
+    saveState();
+    renderMapView();
+    toast('Última pared eliminada');
+  });
+  $('#mapWallClearBtn')?.addEventListener('click', () => {
+    if (!state.map.walls?.length) return;
+    if (!confirm(`¿Eliminar las ${state.map.walls.length} paredes del mapa?`)) return;
+    state.map.walls = [];
+    saveState();
+    renderMapView();
+    toast('Todas las paredes eliminadas');
+  });
+
+  $('#mapFogCoverBtn')?.addEventListener('click', () => setMapTool('fog-cover'));
+  $('#mapFogRevealBtn')?.addEventListener('click', () => setMapTool('fog-reveal'));
+  $('#mapFogBrushSize')?.addEventListener('input', e => { mapFogBrushRadius = Number(e.target.value) || 52; });
+  $('#mapFogStrokeUndoBtn')?.addEventListener('click', () => {
+    if (!state.map.fogStrokes?.length) { toast('No hay trazos manuales para deshacer'); return; }
+    state.map.fogStrokes.pop();
+    saveState();
+    renderMapView();
+    toast('Último trazo de niebla deshecho');
+  });
+  $('#mapFogStrokeClearBtn')?.addEventListener('click', () => {
+    if (!state.map.fogStrokes?.length) { toast('No hay niebla manual pintada'); return; }
+    if (!confirm('¿Limpiar toda la niebla manual dibujada?')) return;
+    state.map.fogStrokes = [];
+    saveState();
+    renderMapView();
+    toast('Niebla manual limpiada');
   });
 
   $('#mapResetPinsBtn').addEventListener('click', () => {

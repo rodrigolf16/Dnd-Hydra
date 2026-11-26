@@ -56,52 +56,58 @@
     }
   }
 
-  function metersToPx(meters, gridSize) {
-    return (meters / 1.5) * (gridSize || 56);
+  const ME = window.RondaMapEngine;
+
+  function metersToPx(meters, map) {
+    return ME ? ME.metersToPx(meters, map) : (meters / 1.5) * (map?.gridSize || 56);
   }
 
   function computeVisionSources(st) {
     const m = st.map;
-    const gs = m.gridSize || 56;
     const light = m.lighting || 'day';
+    const walls = Array.isArray(m.walls) ? m.walls : [];
+    const maxMapSpanPx = Math.hypot(m.width || 1280, m.height || 840) + 40;
     const sources = [];
 
     // 1. Player Characters (PCs) emit their personal vision + any carried light source
     st.combatants.forEach(c => {
       if (c.type === 'enemy') return;
       const tok = m.tokens?.[c.id];
-      if (!tok || tok.hidden) return;
+      if (!tok || tok.hidden || tok.staged) return;
       if (c.hp <= 0) return; // Unconscious PC cannot see
 
       const dv = getTokenDarkvision(c, tok);
       const carried = getLightRadiusMeters(tok.light || 'none');
 
       // Personal vision radius depending on ambient lighting (D&D 2024)
-      let brightM = 0;
-      let dimM = 0;
+      let brightPx = 0;
+      let dimPx = 0;
 
       if (light === 'day') {
-        brightM = Math.max(36, dv, carried.bright);
-        dimM = Math.max(48, carried.dim);
+        brightPx = walls.length ? maxMapSpanPx : Math.max(metersToPx(36, m), metersToPx(dv, m), metersToPx(carried.bright, m));
+        dimPx = walls.length ? maxMapSpanPx : Math.max(metersToPx(48, m), metersToPx(carried.dim, m));
       } else if (light === 'dim') {
-        // Dim light: darkvision treats dim light as bright light; normal vision sees dimly up to 18m (crisp close 6m)
-        brightM = Math.max(dv, carried.bright, 4.5);
-        dimM = Math.max(dv + 6, carried.dim, 18);
+        brightPx = metersToPx(Math.max(dv, carried.bright, 4.5), m);
+        dimPx = metersToPx(Math.max(dv + 6, carried.dim, 18), m);
       } else if (light === 'night') {
-        // Night outdoors: darkvision sees within its full range (dimly), normal vision only 2.2m unless carrying light
-        brightM = Math.max(carried.bright, dv > 0 ? dv * 0.75 : 1.5);
-        dimM = Math.max(carried.dim, dv > 0 ? dv : 3);
+        brightPx = metersToPx(Math.max(carried.bright, dv > 0 ? dv * 0.75 : 1.5), m);
+        dimPx = metersToPx(Math.max(carried.dim, dv > 0 ? dv : 3), m);
       } else {
         // Total darkness (dungeon/cave): ONLY darkvision or carried light!
-        brightM = Math.max(carried.bright, dv > 0 ? dv * 0.65 : 1.2);
-        dimM = Math.max(carried.dim, dv > 0 ? dv : 1.8);
+        brightPx = metersToPx(Math.max(carried.bright, dv > 0 ? dv * 0.65 : 1.2), m);
+        dimPx = metersToPx(Math.max(carried.dim, dv > 0 ? dv : 1.8), m);
       }
+
+      const polygon = (ME && walls.length && dimPx > 0)
+        ? ME.computeVisibilityPolygon(tok.x, tok.y, dimPx, walls)
+        : null;
 
       sources.push({
         x: tok.x,
         y: tok.y,
-        brightPx: metersToPx(brightM, gs),
-        dimPx: metersToPx(dimM, gs),
+        brightPx,
+        dimPx,
+        polygon,
         isDarkvisionOnly: carried.bright === 0 && dv > 0 && (light === 'night' || light === 'darkness'),
         hasCarriedLight: carried.bright > 0
       });
@@ -112,11 +118,17 @@
       if (mk.dmOnly) return;
       const isLightMarker = mk.icon === '🔥' || /antorcha|fuego|fogata|luz|linterna|lámpara/i.test(mk.label || '');
       if (!isLightMarker) return;
+      const brightPx = metersToPx(6, m);
+      const dimPx = metersToPx(12, m);
+      const polygon = (ME && walls.length && dimPx > 0)
+        ? ME.computeVisibilityPolygon(mk.x, mk.y, dimPx, walls)
+        : null;
       sources.push({
         x: mk.x,
         y: mk.y,
-        brightPx: metersToPx(6, gs),
-        dimPx: metersToPx(12, gs),
+        brightPx,
+        dimPx,
+        polygon,
         isDarkvisionOnly: false,
         hasCarriedLight: true
       });
@@ -129,18 +141,32 @@
     const m = st.map;
     const fogOn = m.fogEnabled !== false;
     const light = m.lighting || 'day';
-    if (!fogOn && light === 'day') return true;
-    if (light === 'day' && !m.fogInDaylight) return true;
+    const walls = Array.isArray(m.walls) ? m.walls : [];
+    const fogStrokes = Array.isArray(m.fogStrokes) ? m.fogStrokes : [];
+
+    // 1. Manual fog strokes override visibility (cover hides even in daylight; reveal shows)
+    if (fogOn && ME && fogStrokes.length) {
+      const manual = ME.getManualFogStateAt(x, y, fogStrokes);
+      if (manual === 'reveal') return true;
+      if (manual === 'cover') return false;
+    }
+
+    if (!fogOn) return true;
+    if (light === 'day' && !m.fogInDaylight && !walls.length) return true;
 
     for (const s of sources) {
       const dist = Math.hypot(x - s.x, y - s.y);
-      if (dist <= s.dimPx) return true;
+      if (dist <= s.dimPx) {
+        if (!walls.length || !ME || !ME.isBlockedByWalls(s.x, s.y, x, y, walls)) {
+          return true;
+        }
+      }
     }
     return false;
   }
 
   // =========================================================================
-  // FOG OF WAR CANVAS RENDERER
+  // FOG OF WAR CANVAS RENDERER (LIGHTING + 2D WALLS + MANUAL FOG BRUSH)
   // =========================================================================
   function ensureExploredCanvas(w, h, mapKey) {
     if (!exploredCanvas || exploredCanvas.width !== w || exploredCanvas.height !== h || exploredMapKey !== mapKey) {
@@ -149,6 +175,18 @@
       exploredCanvas.height = h;
       exploredMapKey = mapKey;
     }
+  }
+
+  function clipSourcePolygon(ctx, s) {
+    if (!s.polygon || s.polygon.length < 3) return false;
+    ctx.beginPath();
+    ctx.moveTo(s.polygon[0].x, s.polygon[0].y);
+    for (let i = 1; i < s.polygon.length; i += 1) {
+      ctx.lineTo(s.polygon[i].x, s.polygon[i].y);
+    }
+    ctx.closePath();
+    ctx.clip();
+    return true;
   }
 
   function renderFogOfWar(st, sources) {
@@ -165,69 +203,107 @@
     ctx.clearRect(0, 0, w, h);
 
     const fogOn = m.fogEnabled !== false;
-    const light = m.lighting || 'day';
-
-    // In bright daytime with fog disabled (or daylight clear), no fog overlay needed
     if (!fogOn) return;
-    if (light === 'day' && !m.fogInDaylight) return;
 
-    const mapKey = `${w}x${h}:${(m.bgImage || '').slice(0, 40)}:${m.fogResetStamp || 0}`;
-    ensureExploredCanvas(w, h, mapKey);
+    const light = m.lighting || 'day';
+    const walls = Array.isArray(m.walls) ? m.walls : [];
+    const fogStrokes = Array.isArray(m.fogStrokes) ? m.fogStrokes : [];
+    const hasAutoFog = light !== 'day' || !!m.fogInDaylight || walls.length > 0;
 
-    // Record explored zones if explored memory is enabled
-    if (m.fogMemory) {
-      const ectx = exploredCanvas.getContext('2d');
-      ectx.fillStyle = '#ffffff';
-      sources.forEach(s => {
-        ectx.beginPath();
-        ectx.arc(s.x, s.y, s.dimPx, 0, Math.PI * 2);
-        ectx.fill();
-      });
-    }
+    if (!hasAutoFog && !fogStrokes.length) return;
 
-    // 1. Base darkness/fog opacity depending on lighting condition
-    const fogAlpha = light === 'day' ? 0.85 : light === 'dim' ? 0.62 : light === 'night' ? 0.94 : 0.985;
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.fillStyle = `rgba(6, 8, 7, ${fogAlpha})`;
-    ctx.fillRect(0, 0, w, h);
+    if (hasAutoFog) {
+      const mapKey = `${w}x${h}:${m.rotation || 0}:${(m.bgImage || '').slice(0, 40)}:${m.fogResetStamp || 0}`;
+      ensureExploredCanvas(w, h, mapKey);
 
-    // 2. If memory is ON, soften explored areas slightly (terrain visible, enemies still hidden!)
-    if (m.fogMemory) {
+      // Record explored zones if explored memory is enabled (clipped by walls!)
+      if (m.fogMemory) {
+        const ectx = exploredCanvas.getContext('2d');
+        ectx.fillStyle = '#ffffff';
+        sources.forEach(s => {
+          if (s.dimPx <= 0) return;
+          ectx.save();
+          clipSourcePolygon(ectx, s);
+          ectx.beginPath();
+          ectx.arc(s.x, s.y, s.dimPx, 0, Math.PI * 2);
+          ectx.fill();
+          ectx.restore();
+        });
+      }
+
+      // 1. Base darkness/fog opacity depending on lighting condition
+      const fogAlpha = light === 'day' ? 0.9 : light === 'dim' ? 0.66 : light === 'night' ? 0.94 : 0.985;
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.fillStyle = `rgba(6, 8, 7, ${fogAlpha})`;
+      ctx.fillRect(0, 0, w, h);
+
+      // 2. If memory is ON, soften explored areas slightly (terrain visible, enemies still hidden!)
+      if (m.fogMemory) {
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.globalAlpha = light === 'darkness' ? 0.25 : 0.36;
+        ctx.drawImage(exploredCanvas, 0, 0);
+        ctx.globalAlpha = 1;
+      }
+
+      // 3. Punch out active vision circles smoothly (clipped to 2D wall visibility polygon!)
       ctx.globalCompositeOperation = 'destination-out';
-      ctx.globalAlpha = light === 'darkness' ? 0.25 : 0.35;
-      ctx.drawImage(exploredCanvas, 0, 0);
-      ctx.globalAlpha = 1;
-    }
-
-    // 3. Punch out active vision circles smoothly using radial gradients
-    ctx.globalCompositeOperation = 'destination-out';
-    sources.forEach(s => {
-      if (s.dimPx <= 0) return;
-      const innerR = Math.max(4, Math.min(s.brightPx, s.dimPx * 0.92));
-      const grad = ctx.createRadialGradient(s.x, s.y, innerR * 0.72, s.x, s.y, s.dimPx);
-      grad.addColorStop(0, 'rgba(0,0,0,1)');
-      grad.addColorStop(0.68, s.isDarkvisionOnly ? 'rgba(0,0,0,0.82)' : 'rgba(0,0,0,0.92)');
-      grad.addColorStop(1, 'rgba(0,0,0,0)');
-      ctx.fillStyle = grad;
-      ctx.beginPath();
-      ctx.arc(s.x, s.y, s.dimPx, 0, Math.PI * 2);
-      ctx.fill();
-    });
-
-    // 4. Subtle atmospheric tint in Dim Light / Night Darkvision
-    ctx.globalCompositeOperation = 'source-over';
-    if (light === 'night' || light === 'darkness') {
       sources.forEach(s => {
-        if (s.hasCarriedLight) {
-          const warm = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.dimPx);
-          warm.addColorStop(0, 'rgba(255, 200, 115, 0.14)');
-          warm.addColorStop(0.6, 'rgba(255, 175, 85, 0.06)');
-          warm.addColorStop(1, 'rgba(0, 0, 0, 0)');
-          ctx.fillStyle = warm;
+        if (s.dimPx <= 0) return;
+        ctx.save();
+        clipSourcePolygon(ctx, s);
+        if (light === 'day' && walls.length) {
+          ctx.fillStyle = 'rgba(0,0,0,1)';
+          ctx.fillRect(0, 0, w, h);
+        } else {
+          const innerR = Math.max(4, Math.min(s.brightPx, s.dimPx * 0.92));
+          const grad = ctx.createRadialGradient(s.x, s.y, innerR * 0.72, s.x, s.y, s.dimPx);
+          grad.addColorStop(0, 'rgba(0,0,0,1)');
+          grad.addColorStop(0.68, s.isDarkvisionOnly ? 'rgba(0,0,0,0.82)' : 'rgba(0,0,0,0.92)');
+          grad.addColorStop(1, 'rgba(0,0,0,0)');
+          ctx.fillStyle = grad;
           ctx.beginPath();
           ctx.arc(s.x, s.y, s.dimPx, 0, Math.PI * 2);
           ctx.fill();
         }
+        ctx.restore();
+      });
+
+      // 4. Subtle warm atmospheric tint for torches/lanterns in Night / Darkness
+      ctx.globalCompositeOperation = 'source-over';
+      if (light === 'night' || light === 'darkness') {
+        sources.forEach(s => {
+          if (s.hasCarriedLight) {
+            ctx.save();
+            clipSourcePolygon(ctx, s);
+            const warm = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.dimPx);
+            warm.addColorStop(0, 'rgba(255, 200, 115, 0.14)');
+            warm.addColorStop(0.6, 'rgba(255, 175, 85, 0.06)');
+            warm.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            ctx.fillStyle = warm;
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, s.dimPx, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+          }
+        });
+      }
+    }
+
+    // 5. Apply Manual Fog Brush Strokes in chronological order (cover / reveal)
+    if (ME && fogStrokes.length) {
+      fogStrokes.forEach(stStroke => {
+        ctx.save();
+        if (stStroke.mode === 'reveal') {
+          ctx.globalCompositeOperation = 'destination-out';
+          ctx.fillStyle = 'rgba(0,0,0,1)';
+          ctx.strokeStyle = 'rgba(0,0,0,1)';
+        } else {
+          ctx.globalCompositeOperation = 'source-over';
+          ctx.fillStyle = 'rgba(6, 8, 7, 0.985)';
+          ctx.strokeStyle = 'rgba(6, 8, 7, 0.985)';
+        }
+        ME.drawFogStrokePath(ctx, stStroke);
+        ctx.restore();
       });
     }
   }
@@ -243,6 +319,7 @@
     stage.style.height = `${m.height || 840}px`;
     stage.style.transform = `translate(${viewPanX}px, ${viewPanY}px) scale(${viewZoom})`;
     $('#pZoomLabel').textContent = `${Math.round(viewZoom * 100)}%`;
+    if (ME) ME.renderScaleBar($('#playerScaleBar'), m, viewZoom);
   }
 
   function fitCamera() {
@@ -473,6 +550,7 @@
     const bgImg = $('#playerBgImg');
     if (m.bgImage) {
       if (bgImg.src !== m.bgImage) bgImg.src = m.bgImage;
+      if (ME) ME.applyBgImageRotation(bgImg, m);
       bgImg.hidden = false;
       $('#playerEmptyMsg').hidden = true;
     } else {
