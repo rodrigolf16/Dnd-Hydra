@@ -52,6 +52,8 @@ jobs:
             player.js \
             player-manifest.webmanifest \
             player-sw.js \
+            actualizar.bat \
+            actualizar.sh \
             assets \
             extension \
             lib
