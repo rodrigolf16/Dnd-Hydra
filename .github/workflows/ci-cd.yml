@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   validate:
-    name: Validar extensión y PWA
+    name: Validar extensión, arquitectura y PWA
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -25,6 +25,9 @@ jobs:
 
       - name: Ejecutar validaciones (JS, MV3 CSP, Sync, Mapa 2D)
         run: node scripts/validate.mjs
+
+      - name: Verificar Clean Architecture y límite de 200 líneas
+        run: python3 .agents/skills/clean-architecture/scripts/verify-standards.py
 
   release-extension:
     name: Empaquetar extensión y publicar Release
@@ -40,23 +43,15 @@ jobs:
           zip -r Ronda-Extension-Chrome.zip \
             manifest.json \
             index.html \
-            styles.css \
-            app.js \
-            campaign-data.js \
-            map-engine.js \
-            sync-bridge.js \
             player-map.html \
-            player-map.js \
             player.html \
-            player.css \
-            player.js \
             player-manifest.webmanifest \
             player-sw.js \
             actualizar.bat \
             actualizar.sh \
             assets \
-            extension \
-            lib
+            lib \
+            src
 
       - name: Subir artefacto de compilación
         uses: actions/upload-artifact@v4
